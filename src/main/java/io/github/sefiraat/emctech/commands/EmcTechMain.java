@@ -20,9 +20,7 @@ public class EmcTechMain extends BaseCommand {
 
     @Default
     public void onDefault(CommandSender sender) {
-        if (sender instanceof Player) {
-            sender.sendMessage(Theme.ERROR + "请输入有效的指令.");
-        }
+        sender.sendMessage(Theme.ERROR + "请输入有效的指令.");
     }
 
     @Subcommand("emc")
@@ -30,6 +28,8 @@ public class EmcTechMain extends BaseCommand {
     public void viewEmc(CommandSender sender) {
         if (sender instanceof Player player) {
             player.sendMessage(Theme.MAIN + "当前的EMC值: " + EmcUtils.EMC_FORMAT.format(EmcStorage.getEmc(player)));
+        } else {
+            sendPlayerOnlyMessage(sender);
         }
     }
 

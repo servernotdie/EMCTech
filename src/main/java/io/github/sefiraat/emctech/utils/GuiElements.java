@@ -1,6 +1,5 @@
 package io.github.sefiraat.emctech.utils;
 
-import io.github.sefiraat.sefilib.string.StringUtils;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
@@ -53,7 +52,7 @@ public final class GuiElements {
     public static final ItemStack INFO_NOT_WORKING = new CustomItemStack(
         Material.RED_STAINED_GLASS_PANE,
         Theme.PASSIVE + "未运行",
-        Theme.PASSIVE + "该机器不再运行状态."
+        Theme.PASSIVE + "该机器不在运行."
     );
 
     public static final ItemStack INFO_INVALID_ITEM = new CustomItemStack(
@@ -81,11 +80,11 @@ public final class GuiElements {
     ) {
         return new CustomItemStack(
             Material.GREEN_STAINED_GLASS_PANE,
-            Theme.PASSIVE + "Working on",
-            Theme.CLICK_INFO.applyAsTitle("Item Name", name),
-            Theme.CLICK_INFO.applyAsTitle("EMC Value", emcValue),
-            Theme.CLICK_INFO.applyAsTitle("Power Required/Operation", powerRequirement),
-            Theme.CLICK_INFO.applyAsTitle("Machine Power", currentPower)
+            Theme.PASSIVE + "正在运行",
+            Theme.CLICK_INFO.applyAsTitle("物品", name),
+            Theme.CLICK_INFO.applyAsTitle("EMC值", emcValue),
+            Theme.CLICK_INFO.applyAsTitle("每次操作所需电力", powerRequirement),
+            Theme.CLICK_INFO.applyAsTitle("已存储电力", currentPower)
         );
     }
 

@@ -18,6 +18,7 @@ import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
+import net.guizhanss.guizhanlib.minecraft.helper.inventory.ItemStackHelper;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -129,10 +130,10 @@ public class NodeMaterializer extends OwnedVariableTickRateNode implements Energ
             }
 
             if (slimefunItem == null) {
-                name = templateItemStack.getType().name();
+                name = ItemStackHelper.getDisplayName(templateItemStack);
                 emcValue = EmcUtils.getEmcValue(templateItemStack);
             } else {
-                name = slimefunItem.getId();
+                name = slimefunItem.getItemName();
                 emcValue = EmcUtils.getEmcValue(slimefunItem);
             }
 

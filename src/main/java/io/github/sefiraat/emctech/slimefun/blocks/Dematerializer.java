@@ -18,6 +18,7 @@ import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import me.mrCookieSlime.Slimefun.api.item_transport.ItemTransportFlow;
+import net.guizhanss.guizhanlib.minecraft.helper.inventory.ItemStackHelper;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -123,14 +124,16 @@ public class Dematerializer extends OwnedVariableTickRateItem implements EnergyN
         if (EmcUtils.canEmc(inputItemStack) && SlimefunUtils.isItemSimilar(inputItemStack, templateItemStack, true)) {
             // Item can be EMC'd and matches the given template item
             final SlimefunItem slimefunItem = SlimefunItem.getByItem(inputItemStack);
-            String name;
+            String name, displayName;
             double emcValue;
 
             if (slimefunItem == null) {
                 name = inputItemStack.getType().name();
+                displayName = ItemStackHelper.getDisplayName(inputItemStack);
                 emcValue = EmcUtils.getEmcValue(inputItemStack);
             } else {
                 name = slimefunItem.getId();
+                displayName = slimefunItem.getItemName();
                 emcValue = EmcUtils.getEmcValue(slimefunItem);
             }
 
@@ -143,7 +146,7 @@ public class Dematerializer extends OwnedVariableTickRateItem implements EnergyN
             final Player player = getOwner(block);
             final int currentCharge = getCharge(block.getLocation());
 
-            setWorking(blockMenu, name, emcValue, requiredPower, currentCharge);
+            setWorking(blockMenu, displayName, emcValue, requiredPower, currentCharge);
             if (player != null && currentCharge >= requiredPower) {
                 removeCharge(block.getLocation(), requiredPower);
                 EmcStorage.addEmc(player, emcValue);
