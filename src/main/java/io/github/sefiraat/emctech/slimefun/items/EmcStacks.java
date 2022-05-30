@@ -330,9 +330,9 @@ public class EmcStacks {
             "这个机器可以缓慢地解构物品",
             "并将获得的EMC存入玩家的EMC池中",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 5 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "1,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值 / 10"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 5 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "1,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10")
         );
 
         EMC_DEMATERIALIZER_2 = Theme.themedSlimefunItemStack(
@@ -343,9 +343,9 @@ public class EmcStacks {
             "这个机器可以缓慢地解构物品",
             "并将获得的EMC存入玩家的EMC池中",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 4 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "10,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值 / 10"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 4 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10")
         );
 
         EMC_DEMATERIALIZER_3 = Theme.themedSlimefunItemStack(
@@ -356,9 +356,9 @@ public class EmcStacks {
             "这个机器可以缓慢地解构物品",
             "并将获得的EMC存入玩家的EMC池中",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 3 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "100,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值 / 10"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 3 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "100,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10")
         );
 
         EMC_DEMATERIALIZER_4 = Theme.themedSlimefunItemStack(
@@ -369,9 +369,9 @@ public class EmcStacks {
             "这个机器可以缓慢地解构物品",
             "并将获得的EMC存入玩家的EMC池中",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 2 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "1,000,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值 / 10"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 2 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "1,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10")
         );
 
         EMC_DEMATERIALIZER_5 = Theme.themedSlimefunItemStack(
@@ -382,9 +382,9 @@ public class EmcStacks {
             "这个机器可以缓慢地解构物品",
             "并将获得的EMC存入玩家的EMC池中",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "10,000,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值 / 10 (不会超过容量上限)"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10 (不超过电容量上限)")
         );
 
         EMC_MATERIALIZER_1 = Theme.themedSlimefunItemStack(
@@ -395,9 +395,9 @@ public class EmcStacks {
             "这个机器可以缓慢地重构物品",
             "将消耗玩家的EMC池.",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 5 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "1,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 5 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "1,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值")
         );
 
         EMC_MATERIALIZER_2 = Theme.themedSlimefunItemStack(
@@ -408,9 +408,9 @@ public class EmcStacks {
             "这个机器可以缓慢地重构物品",
             "将消耗玩家的EMC池.",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 4 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "10,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 4 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值")
         );
 
         EMC_MATERIALIZER_3 = Theme.themedSlimefunItemStack(
@@ -421,9 +421,9 @@ public class EmcStacks {
             "这个机器可以缓慢地重构物品",
             "将消耗玩家的EMC池.",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 3 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "100,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 3 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "100,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值")
         );
 
         EMC_MATERIALIZER_4 = Theme.themedSlimefunItemStack(
@@ -434,9 +434,9 @@ public class EmcStacks {
             "这个机器可以缓慢地重构物品",
             "将消耗玩家的EMC池.",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 2 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "1,000,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 2 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "1,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值")
         );
 
         EMC_MATERIALIZER_5 = Theme.themedSlimefunItemStack(
@@ -447,9 +447,9 @@ public class EmcStacks {
             "这个机器可以缓慢地重构物品",
             "将消耗玩家的EMC池.",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "10,000,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值 (不会超过容量上限)"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 (不超过电容量上限)")
         );
 
         EMC_NETWORK_MATERIALIZER = Theme.themedSlimefunItemStack(
@@ -463,9 +463,9 @@ public class EmcStacks {
             "生成的物品在网络中可见",
             "但不会自动存入网络",
             "",
-            Theme.CLICK_INFO + "速率: " + Theme.PASSIVE + "1 个物品 / 粘液刻",
-            Theme.CLICK_INFO + "可存储: " + Theme.PASSIVE + "10,000,000 J",
-            Theme.CLICK_INFO + "电力消耗: " + Theme.PASSIVE + "物品的EMC值 (不会超过容量上限)"
+            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 粘液刻"),
+            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 (不超过电容量上限)")
         );
 
         // endregion
