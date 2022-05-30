@@ -33,3 +33,9 @@
 | `/emc viewemc <玩家名称>` | 查看指定玩家的EMC值 | `EMCTech.Admin` |
 | `/emc addemc <玩家名称> <数量>` | 增加指定玩家的EMC值 | `EMCTech.Admin` |
 | `/emc setemc <玩家名称> <数量>` | 设置指定玩家的EMC值 | `EMCTech.Admin` |
+
+## PlaceholderAPI
+
+- `%emctech_current_emc%` - 玩家当前EMC值
+- `%emctech_amount_learned_vanilla%` - 玩家已解锁原版物品的数量
+- `%emctech_amount_learned_slimefun%` - 玩家已解锁粘液科技物品的数量
