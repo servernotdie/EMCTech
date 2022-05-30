@@ -44,7 +44,7 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
 
         getLogger().info("##########################################");
         getLogger().info("     EMCTech              EMC科技          ");
-        getLogger().info(" 作者: Sefiraat   汉化: SlimefunGuguProject ");
+        getLogger().info(" 作者: Sefiraat 汉化: SlimefunGuguProject   ");
         getLogger().info("##########################################");
 
         saveDefaultConfig();
