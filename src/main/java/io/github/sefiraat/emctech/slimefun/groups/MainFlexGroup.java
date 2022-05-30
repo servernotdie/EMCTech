@@ -74,12 +74,13 @@ public class MainFlexGroup extends FlexItemGroup {
         }
 
         // Back
-        menu.replaceExistingItem(GUIDE_BACK,
-                                 ChestMenuUtils.getBackButton(
-                                     player,
-                                     "",
-                                     "&7" + Slimefun.getLocalization().getMessage("guide.back.guide")
-                                 )
+        menu.replaceExistingItem(
+            GUIDE_BACK,
+            ChestMenuUtils.getBackButton(
+                player,
+                "",
+                "&7" + Slimefun.getLocalization().getMessage("guide.back.guide")
+            )
         );
         menu.addMenuClickHandler(GUIDE_BACK, (player1, slot, itemStack, clickAction) -> {
             SlimefunGuide.openMainMenu(profile, mode, 1);

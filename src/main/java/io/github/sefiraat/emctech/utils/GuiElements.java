@@ -61,22 +61,22 @@ public final class GuiElements {
         Theme.PASSIVE + "该物品无法与EMC转换."
     );
 
-    public static final ItemStack INFO_INVALID_PLAYER = new CustomItemStack(
-        Material.ORANGE_STAINED_GLASS_PANE,
-        Theme.PASSIVE + "无效的玩家",
-        Theme.PASSIVE + "该方块的拥有者无效,可能需要重新摆放方块."
-    );
-
     public static final ItemStack INFO_UNLEARNED_ITEM = new CustomItemStack(
         Material.ORANGE_STAINED_GLASS_PANE,
         Theme.PASSIVE + "未解锁物品",
         Theme.PASSIVE + "该物品暂未解锁."
     );
 
+    public static final ItemStack INFO_PLAYER_OFFLINE = new CustomItemStack(
+        Material.ORANGE_STAINED_GLASS_PANE,
+        Theme.PASSIVE + "机器拥有者离线",
+        Theme.PASSIVE + "该机器的拥有者不在线."
+    );
+
     public static ItemStack getWorkingOnIcon(@Nonnull String name,
-                                                      double emcValue,
-                                                      int powerRequirement,
-                                                      int currentPower
+                                             double emcValue,
+                                             int powerRequirement,
+                                             int currentPower
     ) {
         return new CustomItemStack(
             Material.GREEN_STAINED_GLASS_PANE,
@@ -94,7 +94,12 @@ public final class GuiElements {
                                                double emcValue,
                                                double emcValueLarge
     ) {
-        return getItemLearnedIcon(itemStack.getType(), name, emcValue, emcValueLarge);
+        return new CustomItemStack(
+            itemStack,
+            Theme.SUCCESS + name,
+            Theme.CLICK_INFO.applyAsTitle("EMC (解构)", EmcUtils.EMC_FORMAT_GUIDE.format(emcValue)),
+            Theme.CLICK_INFO.applyAsTitle("EMC (重构)", EmcUtils.EMC_FORMAT_GUIDE.format(emcValueLarge))
+        );
     }
 
     @ParametersAreNonnullByDefault
@@ -106,8 +111,8 @@ public final class GuiElements {
         return new CustomItemStack(
             material,
             Theme.SUCCESS + name,
-            Theme.CLICK_INFO.applyAsTitle("EMC (解构)", EmcUtils.EMC_FORMAT.format(emcValue)),
-            Theme.CLICK_INFO.applyAsTitle("EMC (重构)", EmcUtils.EMC_FORMAT.format(emcValueLarge))
+            Theme.CLICK_INFO.applyAsTitle("EMC (解构)", EmcUtils.EMC_FORMAT_GUIDE.format(emcValue)),
+            Theme.CLICK_INFO.applyAsTitle("EMC (重构)", EmcUtils.EMC_FORMAT_GUIDE.format(emcValueLarge))
         );
     }
 

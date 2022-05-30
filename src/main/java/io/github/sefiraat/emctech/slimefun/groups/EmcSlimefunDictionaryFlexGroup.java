@@ -60,7 +60,7 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
 
     @Override
     @ParametersAreNonnullByDefault
-    public void open(Player p, PlayerProfile profile, SlimefunGuideMode mode) {
+    public void open(Player player, PlayerProfile profile, SlimefunGuideMode mode) {
         final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC图鉴 - 粘液科技");
 
         for (int slot : HEADER) {
@@ -72,8 +72,8 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
         }
 
         chestMenu.setEmptySlotsClickable(false);
-        setupPage(p, profile, mode, chestMenu, 1);
-        chestMenu.open(p);
+        setupPage(player, profile, mode, chestMenu, 1);
+        chestMenu.open(player);
     }
 
     @ParametersAreNonnullByDefault
@@ -130,10 +130,11 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
                 if (mode == SlimefunGuideMode.CHEAT_MODE || learned) {
                     menu.replaceExistingItem(
                         slot,
-                        GuiElements.getItemLearnedIcon(slimefunItem.getItem(),
-                                                       slimefunItem.getItemName(),
-                                                       EmcUtils.getEmcValue(slimefunItem),
-                                                       EmcUtils.getEmcValueMultiplied(slimefunItem)
+                        GuiElements.getItemLearnedIcon(
+                            slimefunItem.getItem(),
+                            slimefunItem.getItemName(),
+                            EmcUtils.getEmcValue(slimefunItem),
+                            EmcUtils.getEmcValueMultiplied(slimefunItem)
                         )
                     );
                 } else {
