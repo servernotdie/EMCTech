@@ -14,17 +14,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum Theme {
-    WARNING(ChatColor.YELLOW, "Warning"),
-    ERROR(ChatColor.RED, "Error"),
-    NOTICE(ChatColor.WHITE, "Notice"),
+    WARNING(ChatColor.YELLOW, "警告"),
+    ERROR(ChatColor.RED, "错误"),
+    NOTICE(ChatColor.WHITE, "提示"),
     PASSIVE(ChatColor.GRAY, ""),
-    SUCCESS(ChatColor.GREEN, "Success"),
-    MAIN(ChatColor.of("#21588f"), "EMCTech"),
-    CLICK_INFO(ChatColor.of("#e4ed32"), "Click here"),
-    RESEARCH(ChatColor.of("#a60e03"), "Research"),
-    CRAFTING(ChatColor.of("#dbcea9"), "Crafting Material"),
-    RECIPE_TYPE(ChatColor.of("#ffe89c"), "Recipe Type"),
-    MACHINE(ChatColor.of("#3295a8"), "Machine");
+    SUCCESS(ChatColor.GREEN, "成功"),
+    MAIN(ChatColor.of("#21588f"), "EMC科技"),
+    CLICK_INFO(ChatColor.of("#e4ed32"), "点击此处"),
+    RESEARCH(ChatColor.of("#a60e03"), "研究"),
+    CRAFTING(ChatColor.of("#dbcea9"), "合成材料"),
+    RECIPE_TYPE(ChatColor.of("#ffe89c"), "配方"),
+    MACHINE(ChatColor.of("#3295a8"), "机器");
 
     protected static final Theme[] cachedValues = values();
     private final ChatColor color;

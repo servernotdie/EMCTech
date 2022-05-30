@@ -10,6 +10,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -49,7 +50,7 @@ public class MainFlexGroup extends FlexItemGroup {
     @Override
     @ParametersAreNonnullByDefault
     public void open(Player p, PlayerProfile profile, SlimefunGuideMode mode) {
-        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC Tech");
+        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC科技");
 
         for (int slot : HEADER) {
             chestMenu.addItem(slot, ChestMenuUtils.getBackground(), (player1, i1, itemStack, clickAction) -> false);
@@ -60,6 +61,7 @@ public class MainFlexGroup extends FlexItemGroup {
         }
 
         chestMenu.setEmptySlotsClickable(false);
+        chestMenu.addMenuOpeningHandler((pl) -> pl.playSound(pl.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1.0F, 1.0F));
         setupPage(p, profile, mode, chestMenu);
         chestMenu.open(p);
     }
@@ -75,7 +77,8 @@ public class MainFlexGroup extends FlexItemGroup {
         menu.replaceExistingItem(GUIDE_BACK,
                                  ChestMenuUtils.getBackButton(
                                      player,
-                                     Slimefun.getLocalization().getMessage("guide.back.guide")
+                                     "",
+                                     "&7" + Slimefun.getLocalization().getMessage("guide.back.guide")
                                  )
         );
         menu.addMenuClickHandler(GUIDE_BACK, (player1, slot, itemStack, clickAction) -> {

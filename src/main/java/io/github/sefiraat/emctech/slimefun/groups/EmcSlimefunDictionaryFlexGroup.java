@@ -17,6 +17,7 @@ import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -60,7 +61,7 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
     @Override
     @ParametersAreNonnullByDefault
     public void open(Player p, PlayerProfile profile, SlimefunGuideMode mode) {
-        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC Dictionary");
+        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC图鉴 - 粘液科技");
 
         for (int slot : HEADER) {
             chestMenu.addItem(slot, ChestMenuUtils.getBackground(), (player1, i1, itemStack, clickAction) -> false);
@@ -83,6 +84,8 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
         final int start = (page - 1) * PAGE_SIZE;
         final int end = Math.min(start + PAGE_SIZE, numberOfEntries);
 
+        player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1.0F, 1.0F);
+
         for (int i = 0; i < entries.size(); i++) {
             entries.set(i, ChatColor.stripColor(entries.get(i)));
         }
@@ -101,7 +104,8 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
             GUIDE_BACK,
             ChestMenuUtils.getBackButton(
                 player,
-                Slimefun.getLocalization().getMessage("guide.back.guide")
+                "",
+                "&7" + Slimefun.getLocalization().getMessage(player, "guide.back.guide")
             )
         );
         menu.addMenuClickHandler(GUIDE_BACK, (player1, slot, itemStack, clickAction) -> {
@@ -181,7 +185,7 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
         final List<String> lore = new ArrayList<>();
 
         lore.add(MessageFormat.format(
-            "{0}Slimefun Items Learned: {1}{2}/{3}",
+            "{0}已解锁粘液科技物品: {1}{2}/{3}",
             color,
             passive,
             EmcStorage.getAmountLearned(player, false),
@@ -190,7 +194,7 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
 
         return new CustomItemStack(
             Material.TARGET,
-            Theme.MAIN.getColor() + "Learned Items",
+            Theme.MAIN.getColor() + "已解锁物品",
             lore
         );
     }

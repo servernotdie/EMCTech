@@ -17,7 +17,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("main"),
         new CustomItemStack(
             new ItemStack(Material.WRITABLE_BOOK),
-            Theme.MAIN.color("EMCTech")
+            Theme.MAIN.color("EMC科技")
         )
     );
 
@@ -25,7 +25,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("materials"),
         new CustomItemStack(
             new ItemStack(Material.COAL),
-            Theme.MAIN.color("EMCTech Crafting Materials")
+            Theme.MAIN.color("EMC科技 - 合成材料")
         )
     );
 
@@ -33,7 +33,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("machines"),
         new CustomItemStack(
             new ItemStack(Material.BUBBLE_CORAL_BLOCK),
-            Theme.MAIN.color("EMCTech Machinery")
+            Theme.MAIN.color("EMC科技 - 机器")
         )
     );
 
@@ -41,7 +41,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("dictionary-vanilla"),
         new CustomItemStack(
             new ItemStack(Material.FEATHER),
-            Theme.MAIN.color("EMC Dictionary (Vanilla)")
+            Theme.MAIN.color("EMC图鉴 (原版)")
         )
     );
 
@@ -49,7 +49,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("dictionary-slimefun"),
         new CustomItemStack(
             new ItemStack(Material.FEATHER),
-            Theme.MAIN.color("EMC Dictionary (Slimefun)")
+            Theme.MAIN.color("EMC图鉴 (粘液科技)")
         )
     );
 
