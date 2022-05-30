@@ -122,7 +122,7 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
                         slot,
                         GuiElements.getItemLearnedIcon(
                             Material.valueOf(entry),
-                            entry,
+                            MaterialHelper.getName(entry),
                             EmcUtils.getEmcValue(entry),
                             EmcUtils.getEmcValueMultiplied(entry)
                         )
