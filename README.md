@@ -19,3 +19,17 @@
     <img src="https://builds.guizhanss.net/f/SlimefunGuguProject/EMCTech/master/badge.svg" alt="Build status"/>
   </a>
 </p>
+
+## 指令与权限
+
+本插件所有指令均以`/emctech`或`/emc`开头。  
+下方列表将使用`/emc`进行说明。
+
+`<>`为必填参数, `[]`为可选参数
+
+| 指令 | 说明 | 所需权限 |
+| --- | --- | ------- |
+| `/emc emc` | 显示自己的EMC值 | 无 |
+| `/emc viewemc <玩家名称>` | 查看指定玩家的EMC值 | `EMCTech.Admin` |
+| `/emc addemc <玩家名称> <数量>` | 增加指定玩家的EMC值 | `EMCTech.Admin` |
+| `/emc setemc <玩家名称> <数量>` | 设置指定玩家的EMC值 | `EMCTech.Admin` |
