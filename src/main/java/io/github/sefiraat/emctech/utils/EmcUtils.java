@@ -40,11 +40,11 @@ public final class EmcUtils {
 
         if (SupportedPluginManager.isDankTech2()) {
             EmcUtils.addValidRecipeType(SlimefunItem.getById("DK2_PACK_1").getRecipeType());
-            plugin.getLogger().info("Adding extended recipes for DankTech2");
+            plugin.getLogger().info("正在添加来自 DankTech2 的配方");
         }
         if (SupportedPluginManager.isInfinityExpansion()) {
             EmcUtils.addValidRecipeType(SlimefunItem.getById("INFINITY_DUST_EXTRACTOR").getRecipeType());
-            plugin.getLogger().info("Adding extended recipes for Infinity Expansion");
+            plugin.getLogger().info("正在添加来自 InfinityExpansion 的配方");
         }
 
     }

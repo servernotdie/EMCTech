@@ -11,6 +11,7 @@ import io.github.sefiraat.emctech.managers.SupportedPluginManager;
 import io.github.sefiraat.emctech.slimefun.items.EmcItems;
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.updater.GitHubBuildsUpdater;
+import net.guizhanss.guizhanlib.updater.GuizhanBuildsUpdater;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -32,7 +33,7 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
     private PaperCommandManager commandManager;
 
     public EmcTech() {
-        this.username = "Sefiraat";
+        this.username = "SlimefunGuguProject";
         this.repo = "EMCTech";
         this.branch = "master";
     }
@@ -41,9 +42,10 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
     public void onEnable() {
         instance = this;
 
-        getLogger().info("########################################");
-        getLogger().info("           EMCTech by Sefiraat          ");
-        getLogger().info("########################################");
+        getLogger().info("##########################################");
+        getLogger().info("     EMCTech              EMC科技          ");
+        getLogger().info(" 作者: Sefiraat 汉化: SlimefunGuguProject   ");
+        getLogger().info("##########################################");
 
         saveDefaultConfig();
         tryUpdate();
@@ -66,11 +68,9 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
 
     public void tryUpdate() {
         if (getConfig().getBoolean("auto-update")
-            && getDescription().getVersion().startsWith("DEV")
+            && getDescription().getVersion().startsWith("Build")
         ) {
-            String updateLocation = MessageFormat.format("{0}/{1}/{2}", this.username, this.repo, this.branch);
-            GitHubBuildsUpdater updater = new GitHubBuildsUpdater(this, getFile(), updateLocation);
-            updater.start();
+            new GuizhanBuildsUpdater(this, getFile(), this.username, this.repo, this.branch, false, "zh-CN").start();
         }
     }
 

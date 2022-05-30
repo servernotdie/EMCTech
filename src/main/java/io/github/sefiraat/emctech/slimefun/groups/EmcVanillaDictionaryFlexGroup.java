@@ -13,9 +13,11 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
+import net.guizhanss.guizhanlib.minecraft.helper.MaterialHelper;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -59,7 +61,7 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
     @Override
     @ParametersAreNonnullByDefault
     public void open(Player p, PlayerProfile profile, SlimefunGuideMode mode) {
-        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC Dictionary");
+        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC图鉴 - 原版");
 
         for (int slot : HEADER) {
             chestMenu.addItem(slot, ChestMenuUtils.getBackground(), (player1, i1, itemStack, clickAction) -> false);
@@ -82,6 +84,8 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
         final int start = (page - 1) * PAGE_SIZE;
         final int end = Math.min(start + PAGE_SIZE, numberOfEntries);
 
+        player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1.0F, 1.0F);
+
         entries.sort(Comparator.comparing(definition -> definition));
 
         final List<String> entriesSubList = entries.subList(start, end);
@@ -93,7 +97,8 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
             GUIDE_BACK,
             ChestMenuUtils.getBackButton(
                 player,
-                Slimefun.getLocalization().getMessage("guide.back.guide")
+                "",
+                "&7" + Slimefun.getLocalization().getMessage(player, "guide.back.guide")
             )
         );
         menu.addMenuClickHandler(GUIDE_BACK, (player1, slot, itemStack, clickAction) -> {
@@ -122,7 +127,7 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
                         )
                     );
                 } else {
-                    menu.replaceExistingItem(slot, GuiElements.getItemNotLearnedIcon(entry));
+                    menu.replaceExistingItem(slot, GuiElements.getItemNotLearnedIcon(MaterialHelper.getName(entry)));
                 }
             } else {
                 menu.replaceExistingItem(slot, null);
@@ -170,7 +175,7 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
         final List<String> lore = new ArrayList<>();
 
         lore.add(MessageFormat.format(
-            "{0}Vanilla Items Learned: {1}{2}/{3}",
+            "{0}已解锁原版物品: {1}{2}/{3}",
             color,
             passive,
             EmcStorage.getAmountLearned(player, true),
@@ -179,7 +184,7 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
 
         return new CustomItemStack(
             Material.TARGET,
-            Theme.MAIN.getColor() + "Learned Items",
+            Theme.MAIN.getColor() + "已解锁物品",
             lore
         );
     }
