@@ -12,6 +12,7 @@ import io.github.sefiraat.emctech.slimefun.items.EmcItems;
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.updater.GitHubBuildsUpdater;
 import net.guizhanss.guizhanlib.updater.GuizhanBuildsUpdater;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -41,6 +42,8 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
     @Override
     public void onEnable() {
         instance = this;
+
+        new Metrics(this, 15351);
 
         getLogger().info("##########################################");
         getLogger().info("     EMCTech              EMC科技          ");
