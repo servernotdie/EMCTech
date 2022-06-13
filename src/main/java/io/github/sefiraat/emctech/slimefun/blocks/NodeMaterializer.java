@@ -218,6 +218,7 @@ public class NodeMaterializer extends OwnedVariableTickRateNode implements Energ
             @Override
             public void init() {
                 drawBackground(BACKGROUND_SLOTS);
+                addItem(INFO_SLOT, GuiElements.INFO_NOT_WORKING, ChestMenuUtils.getEmptyClickHandler());
                 for (int i : TEMPLATE_BACKGROUND) {
                     addItem(i, GuiElements.TEMPLATE_BACKGROUND, ChestMenuUtils.getEmptyClickHandler());
                 }
