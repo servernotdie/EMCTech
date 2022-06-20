@@ -118,6 +118,7 @@ public class Materializer extends OwnedVariableTickRateItem implements EnergyNet
         if (EmcUtils.canEmc(templateItemStack)) {
             // Item can be EMC'd
             final SlimefunItem slimefunItem = SlimefunItem.getByItem(templateItemStack);
+            final boolean isVanilla = slimefunItem == null;
             final Player player = getOwner(block);
             String name;
             double emcValue;
@@ -127,7 +128,7 @@ public class Materializer extends OwnedVariableTickRateItem implements EnergyNet
                 return;
             }
 
-            if (slimefunItem == null) {
+            if (isVanilla) {
                 name = ItemStackHelper.getDisplayName(templateItemStack);
                 emcValue = EmcUtils.getEmcValue(templateItemStack);
             } else {
@@ -142,10 +143,10 @@ public class Materializer extends OwnedVariableTickRateItem implements EnergyNet
 
             if (!EmcStorage.hasLearnedItem(
                 player,
-                slimefunItem == null ?
+                isVanilla ?
                 templateItemStack.getType().name() :
                 slimefunItem.getId(),
-                slimefunItem == null
+                isVanilla
             )) {
                 setUnlearnedItem(blockMenu);
                 return;
@@ -156,7 +157,7 @@ public class Materializer extends OwnedVariableTickRateItem implements EnergyNet
 
             setWorking(blockMenu, name, emcValue, requiredPower, currentCharge);
             if (EmcStorage.hasEnoughEmc(player, emcValue) && currentCharge >= requiredPower) {
-                final ItemStack newItemStack = templateItemStack.clone();
+                final ItemStack newItemStack = isVanilla ? templateItemStack.clone() : slimefunItem.getItem().clone();
 
                 newItemStack.setAmount(1);
                 if (blockMenu.fits(newItemStack, OUTPUT_SLOT)) {
@@ -216,13 +217,13 @@ public class Materializer extends OwnedVariableTickRateItem implements EnergyNet
             @Override
             public void init() {
                 drawBackground(BACKGROUND_SLOTS);
-                addItem(INFO_SLOT, GuiElements.INFO_NOT_WORKING, ChestMenuUtils.getEmptyClickHandler());
                 for (int i : TEMPLATE_BACKGROUND) {
                     addItem(i, GuiElements.TEMPLATE_BACKGROUND, ChestMenuUtils.getEmptyClickHandler());
                 }
                 for (int i : OUTPUT_BACKGROUND) {
                     addItem(i, GuiElements.TEMPLATE_OUTPUT_CARGO, ChestMenuUtils.getEmptyClickHandler());
                 }
+                addItem(INFO_SLOT, GuiElements.INFO_NOT_WORKING, ChestMenuUtils.getEmptyClickHandler());
             }
 
             @Override
