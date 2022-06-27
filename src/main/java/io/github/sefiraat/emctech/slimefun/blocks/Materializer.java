@@ -130,10 +130,10 @@ public class Materializer extends OwnedVariableTickRateItem implements EnergyNet
 
             if (isVanilla) {
                 name = ItemStackHelper.getDisplayName(templateItemStack);
-                emcValue = EmcUtils.getEmcValue(templateItemStack);
+                emcValue = EmcUtils.getEmcValueMultiplied(templateItemStack);
             } else {
                 name = slimefunItem.getItemName();
-                emcValue = EmcUtils.getEmcValue(slimefunItem);
+                emcValue = EmcUtils.getEmcValueMultiplied(slimefunItem);
             }
 
             if (emcValue == 0) {
