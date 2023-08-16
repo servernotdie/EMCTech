@@ -2,6 +2,7 @@ package io.github.sefiraat.emctech;
 
 
 import java.text.MessageFormat;
+import java.util.logging.Level;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,9 +19,10 @@ import io.github.sefiraat.emctech.managers.RunnableManager;
 import io.github.sefiraat.emctech.managers.SupportedPluginManager;
 import io.github.sefiraat.emctech.slimefun.items.EmcItems;
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.updater.GitHubBuildsUpdater;
 
 import co.aikar.commands.PaperCommandManager;
+
+import net.guizhanss.guizhanlibplugin.updater.GuizhanUpdater;
 
 public class EmcTech extends JavaPlugin implements SlimefunAddon {
     private static EmcTech instance;
@@ -44,6 +46,13 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
     @Override
     public void onEnable() {
         instance = this;
+
+        if (!getServer().getPluginManager().isPluginEnabled("GuizhanLibPlugin")) {
+            getLogger().log(Level.SEVERE, "本插件需要 鬼斩前置库插件(GuizhanLibPlugin) 才能运行!");
+            getLogger().log(Level.SEVERE, "从此处下载: https://50L.cc/gzlib");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
 
         getLogger().info("########################################");
         getLogger().info("           EMCTech by Sefiraat          ");
