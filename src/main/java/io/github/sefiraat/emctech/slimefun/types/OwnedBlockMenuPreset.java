@@ -23,15 +23,6 @@ public abstract class OwnedBlockMenuPreset extends BlockMenuPreset {
         this.ownedVariableTickRateItem = ownedVariableTickRateItem;
     }
 
-    protected OwnedBlockMenuPreset(@Nonnull String id,
-                                   @Nonnull String title,
-                                   boolean universal,
-                                   @Nonnull OwnedVariableTickRateItem ownedVariableTickRateItem
-    ) {
-        super(id, title, universal);
-        this.ownedVariableTickRateItem = ownedVariableTickRateItem;
-    }
-
     @Override
     public void newInstance(@Nonnull BlockMenu menu, @Nonnull Block block) {
         final String playerString = BlockStorage.getLocationInfo(block.getLocation(), "owner");
