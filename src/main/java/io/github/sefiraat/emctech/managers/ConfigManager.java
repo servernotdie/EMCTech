@@ -81,7 +81,7 @@ public class ConfigManager {
     }
 
     public void saveAll() {
-        EmcTech.getInstance().getLogger().info("正在保存EMC科技的所有数据.");
+        EmcTech.getInstance().getLogger().info("Đang lưu tất cả dữ liệu của EMC.");
         this.playerEmc.write();
         this.playerLearnedItems.write();
     }
@@ -100,7 +100,7 @@ public class ConfigManager {
                                                     .getConfig()
                                                     .getConfigurationSection("emc-values.vanilla");
         if (section == null) {
-            EmcTech.getInstance().getLogger().severe("缺少原版物品的EMC值配置.");
+            EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Vanilla.");
             return Collections.emptyMap();
         }
         return getEmcValues(section);
@@ -111,7 +111,7 @@ public class ConfigManager {
                                                     .getConfig()
                                                     .getConfigurationSection("emc-values.slimefun");
         if (section == null) {
-            EmcTech.getInstance().getLogger().severe("缺少粘液科技物品的EMC值配置.");
+            EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Slimefun.");
             return Collections.emptyMap();
         }
         return getEmcValues(section);

@@ -65,7 +65,7 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
     @Override
     @ParametersAreNonnullByDefault
     public void open(Player p, PlayerProfile profile, SlimefunGuideMode mode) {
-        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC图鉴 - 原版");
+        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC Danh mục - Vanilla");
 
         for (int slot : HEADER) {
             chestMenu.addItem(slot, ChestMenuUtils.getBackground(), ChestMenuUtils.getEmptyClickHandler());
@@ -183,7 +183,7 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
         final List<String> lore = new ArrayList<>();
 
         lore.add(MessageFormat.format(
-            "{0}已解锁原版物品: {1}{2}/{3}",
+            "{0}Vật phẩm Vanilla đã mở khóa: {1}{2}/{3}",
             color,
             passive,
             EmcStorage.getAmountLearned(player, true),
@@ -192,7 +192,7 @@ public class EmcVanillaDictionaryFlexGroup extends FlexItemGroup {
 
         return new CustomItemStack(
             Material.TARGET,
-            Theme.MAIN.getColor() + "已解锁物品",
+            Theme.MAIN.getColor() + "Vật phẩm đã mở khóa",
             lore
         );
     }

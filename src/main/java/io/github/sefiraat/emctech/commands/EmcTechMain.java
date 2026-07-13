@@ -22,14 +22,14 @@ public class EmcTechMain extends BaseCommand {
 
     @Default
     public void onDefault(CommandSender sender) {
-        sender.sendMessage(Theme.ERROR + "请输入有效的指令.");
+        sender.sendMessage(Theme.ERROR + "Vui lòng nhập lệnh hợp lệ.");
     }
 
     @Subcommand("emc")
-    @Description("显示自己的EMC值")
+    @Description("Hiển thị EMC của bạn")
     public void viewEmc(CommandSender sender) {
         if (sender instanceof Player player) {
-            player.sendMessage(Theme.MAIN + "当前的EMC值: " + EmcUtils.EMC_FORMAT.format(EmcStorage.getEmc(player)));
+            player.sendMessage(Theme.MAIN + "Giá trị EMC hiện tại: " + EmcUtils.EMC_FORMAT.format(EmcStorage.getEmc(player)));
         } else {
             sendPlayerOnlyMessage(sender);
         }
@@ -38,14 +38,14 @@ public class EmcTechMain extends BaseCommand {
     @Subcommand("viewemc")
     @CommandPermission("EMCTech.Admin")
     @CommandCompletion("@players")
-    @Description("显示指定玩家的EMC值")
+    @Description("Hiển thị EMC của người chơi")
     public void viewEmc(CommandSender sender, Player player) {
         if (sender instanceof Player commandIssuer) {
-            commandIssuer.sendMessage(Theme.MAIN + player.getName() + " 当前的EMC值: " + EmcStorage.getEmc(player));
+            commandIssuer.sendMessage(Theme.MAIN + player.getName() + " Giá trị EMC hiện tại: " + EmcStorage.getEmc(player));
         } else {
             EmcTech.getInstance()
                    .getLogger()
-                   .info(Theme.MAIN + player.getName() + "当前的EMC值: " + EmcUtils.EMC_FORMAT.format(EmcStorage.getEmc(
+                   .info(Theme.MAIN + player.getName() + "Giá trị EMC hiện tại: " + EmcUtils.EMC_FORMAT.format(EmcStorage.getEmc(
                        player)));
         }
     }
@@ -53,7 +53,7 @@ public class EmcTechMain extends BaseCommand {
     @Subcommand("addemc")
     @CommandPermission("EMCTech.Admin")
     @CommandCompletion("@players <amount>")
-    @Description("添加指定玩家的EMC值")
+    @Description("Thêm EMC cho người chơi")
     public void addEmc(CommandSender sender, OnlinePlayer player, double amount) {
         EmcStorage.addEmc(player.getPlayer(), amount);
     }
@@ -61,13 +61,13 @@ public class EmcTechMain extends BaseCommand {
     @Subcommand("setemc")
     @CommandPermission("EMCTech.Admin")
     @CommandCompletion("@players <amount>")
-    @Description("设置指定玩家的EMC值")
+    @Description("Đặt EMC cho người chơi")
     public void setEmc(CommandSender sender, OnlinePlayer player, double amount) {
         EmcStorage.setEmc(player.getPlayer(), amount);
     }
 
     public void sendPlayerOnlyMessage(CommandSender sender) {
-        sender.sendMessage(Theme.ERROR + "只有玩家才能执行该指令.");
+        sender.sendMessage(Theme.ERROR + "Chỉ người chơi mới có thể thực thi lệnh này.");
     }
 }
 

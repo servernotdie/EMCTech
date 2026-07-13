@@ -6,11 +6,8 @@ import io.github.sefiraat.emctech.runnables.SaveConfigRunnable;
 public class RunnableManager {
 
     public RunnableManager() {
-        final EmcTech plugin = EmcTech.getInstance();
-
         final SaveConfigRunnable saveConfigRunnable = new SaveConfigRunnable();
 
-        saveConfigRunnable.runTaskTimer(plugin, 1, 12000);
-
+        EmcTech.getFoliaLib().getScheduler().runTimer(saveConfigRunnable, 1, 12000);
     }
 }

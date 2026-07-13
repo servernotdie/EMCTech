@@ -65,7 +65,7 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
     @Override
     @ParametersAreNonnullByDefault
     public void open(Player p, PlayerProfile profile, SlimefunGuideMode mode) {
-        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC图鉴 - 粘液科技");
+        final ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC Danh mục - Slimefun");
 
         for (int slot : HEADER) {
             chestMenu.addItem(slot, ChestMenuUtils.getBackground(), ChestMenuUtils.getEmptyClickHandler());
@@ -193,7 +193,7 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
         final List<String> lore = new ArrayList<>();
 
         lore.add(MessageFormat.format(
-            "{0}已解锁粘液科技物品：{1}{2}/{3}",
+            "{0}Vật phẩm Slimefun đã mở khóa: {1}{2}/{3}",
             color,
             passive,
             EmcStorage.getAmountLearned(player, false),
@@ -202,7 +202,7 @@ public class EmcSlimefunDictionaryFlexGroup extends FlexItemGroup {
 
         return new CustomItemStack(
             Material.TARGET,
-            Theme.MAIN.getColor() + "已解锁物品",
+            Theme.MAIN.getColor() + "Vật phẩm đã mở khóa",
             lore
         );
     }

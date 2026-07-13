@@ -18,7 +18,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("main"),
         new CustomItemStack(
             new ItemStack(Material.WRITABLE_BOOK),
-            Theme.MAIN.color("EMC科技")
+            Theme.MAIN.color("EMC Kỹ thuật")
         )
     );
 
@@ -26,7 +26,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("materials"),
         new CustomItemStack(
             new ItemStack(Material.COAL),
-            Theme.MAIN.color("EMC科技 - 合成材料")
+            Theme.MAIN.color("EMC Kỹ thuật - Vật liệu chế tạo")
         )
     );
 
@@ -34,7 +34,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("machines"),
         new CustomItemStack(
             new ItemStack(Material.BUBBLE_CORAL_BLOCK),
-            Theme.MAIN.color("EMC科技 - 机器")
+            Theme.MAIN.color("EMC Kỹ thuật - Máy móc")
         )
     );
 
@@ -42,7 +42,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("dictionary-vanilla"),
         new CustomItemStack(
             new ItemStack(Material.FEATHER),
-            Theme.MAIN.color("EMC图鉴 (原版)")
+            Theme.MAIN.color("EMC Danh mục (Vanilla)")
         )
     );
 
@@ -50,7 +50,7 @@ public final class EmcTechItemGroups {
         Keys.newKey("dictionary-slimefun"),
         new CustomItemStack(
             new ItemStack(Material.FEATHER),
-            Theme.MAIN.color("EMC图鉴 (粘液科技)")
+            Theme.MAIN.color("EMC Danh mục (Slimefun)")
         )
     );
 
