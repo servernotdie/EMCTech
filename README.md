@@ -39,3 +39,11 @@ Danh sách dưới đây sử dụng `/emc` để minh họa.
 - `%emctech_current_emc%` - Giá trị EMC hiện tại của người chơi
 - `%emctech_amount_learned_vanilla%` - Số lượng vật phẩm Vanilla đã mở khóa
 - `%emctech_amount_learned_slimefun%` - Số lượng vật phẩm Slimefun đã mở khóa
+## Này bản fork từ upstream của nhóm dev người TQ xong dịch :D ờ có công tui patch hỗ trợ folia nữa :D 
+
+- Mà đường có tải trực tiếp mấy link trên readme này tại tui lười chỉnh với muốn ghi công của họ 
+- Có thể bản dịch không đúng lắm mong thông cảm dùm 
+
+Credit: 
+---
+[SlimefunGuguProject](https://github.com/SlimefunGuguProject/EMCTech)
