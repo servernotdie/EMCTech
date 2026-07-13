@@ -17,17 +17,17 @@ import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import net.md_5.bungee.api.ChatColor;
 
 public enum Theme {
-    WARNING(ChatColor.YELLOW, "警告"),
-    ERROR(ChatColor.RED, "错误"),
-    NOTICE(ChatColor.WHITE, "提示"),
+    WARNING(ChatColor.YELLOW, "Cảnh báo"),
+    ERROR(ChatColor.RED, "Lỗi"),
+    NOTICE(ChatColor.WHITE, "Thông báo"),
     PASSIVE(ChatColor.GRAY, ""),
-    SUCCESS(ChatColor.GREEN, "成功"),
-    MAIN(ChatColor.of("#21588f"), "EMC科技"),
-    CLICK_INFO(ChatColor.of("#e4ed32"), "点击此处"),
-    RESEARCH(ChatColor.of("#a60e03"), "研究"),
-    CRAFTING(ChatColor.of("#dbcea9"), "合成材料"),
-    RECIPE_TYPE(ChatColor.of("#ffe89c"), "配方"),
-    MACHINE(ChatColor.of("#3295a8"), "机器");
+    SUCCESS(ChatColor.GREEN, "Thành công"),
+    MAIN(ChatColor.of("#21588f"), "EMC Kỹ thuật"),
+    CLICK_INFO(ChatColor.of("#e4ed32"), "Nhấp vào đây"),
+    RESEARCH(ChatColor.of("#a60e03"), "Nghiên cứu"),
+    CRAFTING(ChatColor.of("#dbcea9"), "Vật liệu chế tạo"),
+    RECIPE_TYPE(ChatColor.of("#ffe89c"), "Công thức"),
+    MACHINE(ChatColor.of("#3295a8"), "Máy móc");
 
     protected static final Theme[] cachedValues = values();
     private final ChatColor color;

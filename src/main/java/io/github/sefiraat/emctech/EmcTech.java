@@ -22,6 +22,8 @@ import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 
 import co.aikar.commands.PaperCommandManager;
 
+import com.tcoded.folialib.FoliaLib;
+
 import net.guizhanss.guizhanlibplugin.updater.GuizhanUpdater;
 
 public class EmcTech extends JavaPlugin implements SlimefunAddon {
@@ -36,6 +38,7 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
     private SupportedPluginManager supportedPluginManager;
     private RunnableManager runnableManager;
     private PaperCommandManager commandManager;
+    private FoliaLib foliaLib;
 
     public EmcTech() {
         this.username = "SlimefunGuguProject";
@@ -46,17 +49,18 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
     @Override
     public void onEnable() {
         instance = this;
+        this.foliaLib = new FoliaLib(this);
 
         if (!getServer().getPluginManager().isPluginEnabled("GuizhanLibPlugin")) {
-            getLogger().log(Level.SEVERE, "本插件需要 鬼斩前置库插件(GuizhanLibPlugin) 才能运行!");
-            getLogger().log(Level.SEVERE, "从此处下载: https://50L.cc/gzlib");
+            getLogger().log(Level.SEVERE, "Plugin này yêu cầu GuizhanLibPlugin để hoạt động!");
+            getLogger().log(Level.SEVERE, "Tải tại: https://50L.cc/gzlib");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
         getLogger().info("########################################");
         getLogger().info("           EMCTech by Sefiraat          ");
-        getLogger().info("     EMC科技 汉化：SlimefunGuguProject    ");
+        getLogger().info("     EMCTech by SlimefunGuguProject    ");
         getLogger().info("########################################");
 
         saveDefaultConfig();
@@ -126,5 +130,9 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
 
     public static RunnableManager getRunnableManager() {
         return EmcTech.getInstance().runnableManager;
+    }
+
+    public static FoliaLib getFoliaLib() {
+        return EmcTech.getInstance().foliaLib;
     }
 }

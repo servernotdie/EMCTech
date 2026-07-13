@@ -73,17 +73,17 @@ public class EmcStacks {
             "ETC_UNORTHODOX_COAL",
             ItemStackGenerators.createEnchantedItemStack(Material.COAL, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "奇怪的煤炭",
-            "这种煤炭的分子进行了重组.",
-            "似乎只有一点点的能量."
+            "Than kỳ lạ",
+            "Cấu trúc phân tử của loại than này đã được tái tổ chức.",
+            "Dường như chỉ có một chút năng lượng."
         );
 
         UNORTHODOX_COAL_DUST = Theme.themedSlimefunItemStack(
             "ETC_UNORTHODOX_COAL_DUST",
             ItemStackGenerators.createEnchantedItemStack(Material.GUNPOWDER, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "奇怪的煤炭粉",
-            "将奇怪的煤炭碾碎成粉."
+            "Bột than kỳ lạ",
+            "Nghiền than kỳ lạ thành bột."
         );
 
         TIGHTLY_PACKED_UNORTHODOX_COAL = Theme.themedSlimefunItemStack(
@@ -94,33 +94,33 @@ public class EmcStacks {
                 new Pair<>(Enchantment.LURE, 1)
             ),
             Theme.CRAFTING,
-            "奇怪的煤炭粉 (已压缩)",
-            "紧密压缩后的奇怪的煤炭."
+            "Bột than kỳ lạ (Đã nén)",
+            "Than kỳ lạ sau khi nén chặt."
         );
 
         UNORTHODOX_COAL_BLOCK = Theme.themedSlimefunItemStack(
             "ETC_UNORTHODOX_COAL_BLOCK",
             ItemStackGenerators.createEnchantedItemStack(Material.COAL_BLOCK, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "奇怪的煤炭块",
-            "一整块奇怪的煤炭."
+            "Khối than kỳ lạ",
+            "Một khối than kỳ lạ."
         );
 
         DEVIANT_COAL = Theme.themedSlimefunItemStack(
             "ETC_DEVIANT_COAL",
             ItemStackGenerators.createEnchantedItemStack(Material.COAL, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "不正常的煤炭",
-            "这种煤炭的分子进行了重组.",
-            "你可以感受到其中微弱的能量."
+            "Than bất thường",
+            "Cấu trúc phân tử của loại than này đã được tái tổ chức.",
+            "Bạn có thể cảm nhận năng lượng yếu ớt bên trong."
         );
 
         DEVIANT_COAL_DUST = Theme.themedSlimefunItemStack(
             "ETC_DEVIANT_COAL_DUST",
             ItemStackGenerators.createEnchantedItemStack(Material.GUNPOWDER, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "不正常的煤炭粉",
-            "将不正常的煤炭碾碎成粉."
+            "Bột than bất thường",
+            "Nghiền than bất thường thành bột."
         );
 
         TIGHTLY_PACKED_DEVIANT_COAL = Theme.themedSlimefunItemStack(
@@ -131,33 +131,33 @@ public class EmcStacks {
                 new Pair<>(Enchantment.LURE, 1)
             ),
             Theme.CRAFTING,
-            "不正常的煤炭粉 (已压缩)",
-            "紧密压缩后的不正常的煤炭."
+            "Bột than bất thường (Đã nén)",
+            "Than bất thường sau khi nén chặt."
         );
 
         DEVIANT_COAL_BLOCK = Theme.themedSlimefunItemStack(
             "ETC_DEVIANT_COAL_BLOCK",
             ItemStackGenerators.createEnchantedItemStack(Material.COAL_BLOCK, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "不正常的煤炭块",
-            "一整块不正常的煤炭."
+            "Khối than bất thường",
+            "Một khối than bất thường."
         );
 
         DIVERGENT_COAL = Theme.themedSlimefunItemStack(
             "ETC_DIVERGENT_COAL",
             ItemStackGenerators.createEnchantedItemStack(Material.COAL, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "发散的煤炭",
-            "这种煤炭的分子进行了重组.",
-            "你可以感受到其中强大的能量."
+            "Than phân kỳ",
+            "Cấu trúc phân tử của loại than này đã được tái tổ chức.",
+            "Bạn có thể cảm nhận năng lượng mạnh mẽ bên trong."
         );
 
         DIVERGENT_COAL_DUST = Theme.themedSlimefunItemStack(
             "ETC_DIVERGENT_COAL_DUST",
             ItemStackGenerators.createEnchantedItemStack(Material.GUNPOWDER, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "发散的煤炭粉",
-            "将发散的煤炭碾碎成粉."
+            "Bột than phân kỳ",
+            "Nghiền than phân kỳ thành bột."
         );
 
         TIGHTLY_PACKED_DIVERGENT_COAL = Theme.themedSlimefunItemStack(
@@ -168,33 +168,33 @@ public class EmcStacks {
                 new Pair<>(Enchantment.LURE, 1)
             ),
             Theme.CRAFTING,
-            "发散的煤炭粉 (已压缩)",
-            "紧密压缩后的发散的煤炭."
+            "Bột than phân kỳ (Đã nén)",
+            "Than phân kỳ sau khi nén chặt."
         );
 
         DIVERGENT_COAL_BLOCK = Theme.themedSlimefunItemStack(
             "ETC_DIVERGENT_COAL_BLOCK",
             ItemStackGenerators.createEnchantedItemStack(Material.COAL_BLOCK, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "发散的煤炭块",
-            "一整块发散的煤炭."
+            "Khối than phân kỳ",
+            "Một khối than phân kỳ."
         );
 
         ANOMALOUS_COAL = Theme.themedSlimefunItemStack(
             "ETC_ANOMALOUS_COAL",
             ItemStackGenerators.createEnchantedItemStack(Material.COAL, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "异常的煤炭",
-            "这种煤炭的分子进行了重组.",
-            "你可以感受到其中非常强大的能量."
+            "Than dị thường",
+            "Cấu trúc phân tử của loại than này đã được tái tổ chức.",
+            "Bạn có thể cảm nhận năng lượng cực kỳ mạnh mẽ bên trong."
         );
 
         ANOMALOUS_COAL_DUST = Theme.themedSlimefunItemStack(
             "ETC_ANOMALOUS_COAL_DUST",
             ItemStackGenerators.createEnchantedItemStack(Material.GUNPOWDER, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "异常的煤炭粉",
-            "将异常的煤炭碾碎成粉."
+            "Bột than dị thường",
+            "Nghiền than dị thường thành bột."
         );
 
         TIGHTLY_PACKED_ANOMALOUS_COAL = Theme.themedSlimefunItemStack(
@@ -205,25 +205,25 @@ public class EmcStacks {
                 new Pair<>(Enchantment.LURE, 1)
             ),
             Theme.CRAFTING,
-            "异常的煤炭粉 (已压缩)",
-            "紧密压缩后的异常的煤炭."
+            "Bột than dị thường (Đã nén)",
+            "Than dị thường sau khi nén chặt."
         );
 
         ANOMALOUS_COAL_BLOCK = Theme.themedSlimefunItemStack(
             "ETC_ANOMALOUS_COAL_BLOCK",
             ItemStackGenerators.createEnchantedItemStack(Material.COAL_BLOCK, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "异常的煤炭块",
-            "一整块异常的煤炭."
+            "Khối than dị thường",
+            "Một khối than dị thường."
         );
 
         PERFECTED_COAL = Theme.themedSlimefunItemStack(
             "ETC_PERFECTED_COAL",
             ItemStackGenerators.createEnchantedItemStack(Material.COAL, true, new Pair<>(Enchantment.LURE, 1)),
             Theme.CRAFTING,
-            "完美的煤炭",
-            "这种煤炭的分子进行了重组.",
-            "其中的能量已经被隐藏起来."
+            "Than hoàn hảo",
+            "Cấu trúc phân tử của loại than này đã được tái tổ chức.",
+            "Năng lượng bên trong đã được ẩn giấu."
         );
 
         // endregion
@@ -234,90 +234,90 @@ public class EmcStacks {
             "ETC_UNORTHADOX_FRAME",
             new ItemStack(Material.BLACK_STAINED_GLASS),
             Theme.CRAFTING,
-            "奇怪的框架",
-            "一个简易的框架",
-            "可用于制作置换机器"
+            "Khung kỳ lạ",
+            "Một khung đơn giản",
+            "Có thể dùng để chế tạo máy hoán đổi"
         );
 
         DEVIANT_FRAME = Theme.themedSlimefunItemStack(
             "ETC_DEVIANT_FRAME",
             new ItemStack(Material.BLACK_STAINED_GLASS),
             Theme.CRAFTING,
-            "不正常的框架",
-            "一个简易的框架",
-            "可用于制作置换机器"
+            "Khung bất thường",
+            "Một khung đơn giản",
+            "Có thể dùng để chế tạo máy hoán đổi"
         );
 
         DIVERGENT_FRAME = Theme.themedSlimefunItemStack(
             "ETC_DIVERGENT_FRAME",
             new ItemStack(Material.BLACK_STAINED_GLASS),
             Theme.CRAFTING,
-            "发散的框架",
-            "一个进阶的框架",
-            "可用于制作置换机器"
+            "Khung phân kỳ",
+            "Một khung nâng cao",
+            "Có thể dùng để chế tạo máy hoán đổi"
         );
 
         ANOMALOUS_FRAME = Theme.themedSlimefunItemStack(
             "ETC_ANOMALOUS_FRAME",
             new ItemStack(Material.BLACK_STAINED_GLASS),
             Theme.CRAFTING,
-            "异常的框架",
-            "一个高级的框架",
-            "可用于制作置换机器"
+            "Khung dị thường",
+            "Một khung cao cấp",
+            "Có thể dùng để chế tạo máy hoán đổi"
         );
 
         PERFECTED_FRAME = Theme.themedSlimefunItemStack(
             "ETC_PERFECTED_FRAME",
             new ItemStack(Material.BLACK_STAINED_GLASS),
             Theme.CRAFTING,
-            "完美的框架",
-            "一个完美的框架",
-            "可用于制作置换机器"
+            "Khung hoàn hảo",
+            "Một khung hoàn hảo",
+            "Có thể dùng để chế tạo máy hoán đổi"
         );
 
         UNORTHODOX_MACHINE_FRAME = Theme.themedSlimefunItemStack(
             "ETC_UNORTHADOX_MACHINE_FRAME",
             new ItemStack(Material.BLUE_STAINED_GLASS),
             Theme.CRAFTING,
-            "奇怪的机器框架",
-            "一个简易的机器框架",
-            "适合制作置换机器"
+            "Khung máy kỳ lạ",
+            "Một khung máy đơn giản",
+            "Phù hợp để chế tạo máy hoán đổi"
         );
 
         DEVIANT_MACHINE_FRAME = Theme.themedSlimefunItemStack(
             "ETC_DEVIANT_MACHINE_FRAME",
             new ItemStack(Material.BLUE_STAINED_GLASS),
             Theme.CRAFTING,
-            "不正常的机器框架",
-            "一个简易的机器框架",
-            "适合制作置换机器"
+            "Khung máy bất thường",
+            "Một khung máy đơn giản",
+            "Phù hợp để chế tạo máy hoán đổi"
         );
 
         DIVERGENT_MACHINE_FRAME = Theme.themedSlimefunItemStack(
             "ETC_DIVERGENT_MACHINE_FRAME",
             new ItemStack(Material.BLUE_STAINED_GLASS),
             Theme.CRAFTING,
-            "发散的机器框架",
-            "一个进阶的机器框架",
-            "适合制作置换机器"
+            "Khung máy phân kỳ",
+            "Một khung máy nâng cao",
+            "Phù hợp để chế tạo máy hoán đổi"
         );
 
         ANOMALOUS_MACHINE_FRAME = Theme.themedSlimefunItemStack(
             "ETC_ANOMALOUS_MACHINE_FRAME",
             new ItemStack(Material.BLUE_STAINED_GLASS),
             Theme.CRAFTING,
-            "异常的机器框架",
-            "一个高级的机器框架",
-            "适合制作置换机器"
+            "Khung máy dị thường",
+            "Một khung máy cao cấp",
+            "Phù hợp để chế tạo máy hoán đổi"
         );
 
         PERFECTED_MACHINE_FRAME = Theme.themedSlimefunItemStack(
             "ETC_PERFECTED_MACHINE_FRAME",
             new ItemStack(Material.BLUE_STAINED_GLASS),
             Theme.CRAFTING,
-            "完美的机器框架",
-            "一个完美的机器框架",
-            "适合制作置换机器"
+            "Khung máy hoàn hảo",
+            "Một khung máy hoàn hảo",
+            "Phù hợp để chế tạo máy hoán đổi"
         );
 
         // endregion
@@ -328,146 +328,146 @@ public class EmcStacks {
             "ETC_DEMATERIALIZER_1",
             new ItemStack(Material.LIGHT_GRAY_WOOL),
             Theme.MACHINE,
-            "解构机 ➊",
-            "这个机器可以缓慢地解构物品",
-            "并将获得的EMC存入玩家的EMC池中",
+            "Máy giải cấu ➊",
+            "Máy này có thể giải cấu vật phẩm chậm",
+            "và lưu EMC thu được vào tài khoản EMC của người chơi",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 5 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "1,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / 5 tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "1,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm / 10")
         );
 
         EMC_DEMATERIALIZER_2 = Theme.themedSlimefunItemStack(
             "ETC_DEMATERIALIZER_2",
             new ItemStack(Material.LIME_WOOL),
             Theme.MACHINE,
-            "解构机 ➋",
-            "这个机器可以缓慢地解构物品",
-            "并将获得的EMC存入玩家的EMC池中",
+            "Máy giải cấu ➋",
+            "Máy này có thể giải cấu vật phẩm chậm",
+            "và lưu EMC thu được vào tài khoản EMC của người chơi",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 4 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / 4 tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "10,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm / 10")
         );
 
         EMC_DEMATERIALIZER_3 = Theme.themedSlimefunItemStack(
             "ETC_DEMATERIALIZER_3",
             new ItemStack(Material.LIGHT_BLUE_WOOL),
             Theme.MACHINE,
-            "解构机 ➌",
-            "这个机器可以缓慢地解构物品",
-            "并将获得的EMC存入玩家的EMC池中",
+            "Máy giải cấu ➌",
+            "Máy này có thể giải cấu vật phẩm chậm",
+            "và lưu EMC thu được vào tài khoản EMC của người chơi",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 3 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "100,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / 3 tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "100,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm / 10")
         );
 
         EMC_DEMATERIALIZER_4 = Theme.themedSlimefunItemStack(
             "ETC_DEMATERIALIZER_4",
             new ItemStack(Material.PURPLE_WOOL),
             Theme.MACHINE,
-            "解构机 ➍",
-            "这个机器可以缓慢地解构物品",
-            "并将获得的EMC存入玩家的EMC池中",
+            "Máy giải cấu ➍",
+            "Máy này có thể giải cấu vật phẩm chậm",
+            "và lưu EMC thu được vào tài khoản EMC của người chơi",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 2 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "1,000,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / 2 tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "1,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm / 10")
         );
 
         EMC_DEMATERIALIZER_5 = Theme.themedSlimefunItemStack(
             "ETC_DEMATERIALIZER_5",
             new ItemStack(Material.RED_WOOL),
             Theme.MACHINE,
-            "解构机 ➎",
-            "这个机器可以缓慢地解构物品",
-            "并将获得的EMC存入玩家的EMC池中",
+            "Máy giải cấu ➎",
+            "Máy này có thể giải cấu vật phẩm chậm",
+            "và lưu EMC thu được vào tài khoản EMC của người chơi",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 / 10 (不超过电容量上限)")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "10,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm / 10 (không quá giới hạn điện dung)")
         );
 
         EMC_MATERIALIZER_1 = Theme.themedSlimefunItemStack(
             "ETC_MATERIALIZER_1",
             new ItemStack(Material.LIGHT_GRAY_CONCRETE),
             Theme.MACHINE,
-            "重构机 ➊",
-            "这个机器可以缓慢地重构物品",
-            "将消耗玩家的EMC池.",
+            "Máy tái cấu ➊",
+            "Máy này có thể tái cấu vật phẩm chậm",
+            "Sẽ tiêu tốn EMC từ tài khoản người chơi.",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 5 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "1,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / 5 tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "1,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm")
         );
 
         EMC_MATERIALIZER_2 = Theme.themedSlimefunItemStack(
             "ETC_MATERIALIZER_2",
             new ItemStack(Material.LIME_CONCRETE),
             Theme.MACHINE,
-            "重构机 ➋",
-            "这个机器可以缓慢地重构物品",
-            "将消耗玩家的EMC池.",
+            "Máy tái cấu ➋",
+            "Máy này có thể tái cấu vật phẩm chậm",
+            "Sẽ tiêu tốn EMC từ tài khoản người chơi.",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 4 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / 4 tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "10,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm")
         );
 
         EMC_MATERIALIZER_3 = Theme.themedSlimefunItemStack(
             "ETC_MATERIALIZER_3",
             new ItemStack(Material.LIGHT_BLUE_CONCRETE),
             Theme.MACHINE,
-            "重构机 ➌",
-            "这个机器可以缓慢地重构物品",
-            "将消耗玩家的EMC池.",
+            "Máy tái cấu ➌",
+            "Máy này có thể tái cấu vật phẩm chậm",
+            "Sẽ tiêu tốn EMC từ tài khoản người chơi.",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 3 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "100,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / 3 tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "100,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm")
         );
 
         EMC_MATERIALIZER_4 = Theme.themedSlimefunItemStack(
             "ETC_MATERIALIZER_4",
             new ItemStack(Material.PURPLE_CONCRETE),
             Theme.MACHINE,
-            "重构机 ➍",
-            "这个机器可以缓慢地重构物品",
-            "将消耗玩家的EMC池.",
+            "Máy tái cấu ➍",
+            "Máy này có thể tái cấu vật phẩm chậm",
+            "Sẽ tiêu tốn EMC từ tài khoản người chơi.",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 2 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "1,000,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / 2 tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "1,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm")
         );
 
         EMC_MATERIALIZER_5 = Theme.themedSlimefunItemStack(
             "ETC_MATERIALIZER_5",
             new ItemStack(Material.RED_CONCRETE),
             Theme.MACHINE,
-            "重构机 ➎",
-            "这个机器可以缓慢地重构物品",
-            "将消耗玩家的EMC池.",
+            "Máy tái cấu ➎",
+            "Máy này có thể tái cấu vật phẩm chậm",
+            "Sẽ tiêu tốn EMC từ tài khoản người chơi.",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 (不超过电容量上限)")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "10,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm (không quá giới hạn điện dung)")
         );
 
         EMC_NETWORK_MATERIALIZER = Theme.themedSlimefunItemStack(
             "ETC_NETWORK_MATERIALIZER",
             new ItemStack(Material.YELLOW_STAINED_GLASS),
             Theme.MACHINE,
-            "网络 EMC 重构机",
-            "这个机器可以缓慢地重构物品",
-            "将消耗玩家的EMC池.",
+            "Máy tái cấu EMC Mạng",
+            "Máy này có thể tái cấu vật phẩm chậm",
+            "Sẽ tiêu tốn EMC từ tài khoản người chơi.",
             "",
-            "生成的物品在网络中可见",
-            "但不会自动存入网络",
+            "Vật phẩm tạo ra hiển thị trong mạng",
+            "nhưng sẽ không tự động lưu vào mạng",
             "",
-            Theme.CLICK_INFO.applyAsTitle("速率", "1 物品 / 粘液刻"),
-            Theme.CLICK_INFO.applyAsTitle("可存储", "10,000,000 J"),
-            Theme.CLICK_INFO.applyAsTitle("电力消耗", "物品的EMC值 (不超过电容量上限)")
+            Theme.CLICK_INFO.applyAsTitle("Tốc độ", "1 vật phẩm / tick Slimefun"),
+            Theme.CLICK_INFO.applyAsTitle("Lưu trữ", "10,000,000 J"),
+            Theme.CLICK_INFO.applyAsTitle("Tiêu thụ năng lượng", "Giá trị EMC vật phẩm (không quá giới hạn điện dung)")
         );
 
         // endregion
