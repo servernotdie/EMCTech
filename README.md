@@ -41,7 +41,7 @@ Danh sách dưới đây sử dụng `/emc` để minh họa.
 - `%emctech_amount_learned_slimefun%` - Số lượng vật phẩm Slimefun đã mở khóa
 ## Này bản fork từ upstream của nhóm dev người TQ xong dịch :D ờ có công tui patch hỗ trợ folia nữa :D 
 
-- Mà đường có tải trực tiếp mấy link trên readme này tại tui lười chỉnh với muốn ghi công của họ 
+- Mà mấy đường link tải trực tiếp trên readme này tại tui lười chỉnh với muốn ghi công của họ , khuyên nên tải từ release 
 - Có thể bản dịch không đúng lắm mong thông cảm dùm 
 
 Credit: 
