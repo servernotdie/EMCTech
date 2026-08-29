@@ -1,0 +1,307 @@
+From 468412b62e640a92797971379e49cf0f8f196836 Mon Sep 17 00:00:00 2001
+From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
+Date: Sun, 30 Aug 2026 00:48:28 +0700
+Subject: [PATCH] feat: add /emc research command to show unlearned EMC items
+
+- ResearchGui: paginated ChestMenu hien thi vat pham chua hoc EMC (ca vanilla va Slimefun), tham khao EmcVanillaDictionaryFlexGroup/EmcSlimefunDictionaryFlexGroup, filter qua EmcStorage.hasLearnedItem, sort theo ten hien thi, hien thi EMC phan ra/tai tao, ho tro phan trang prev/next
+- EmcTechMain: them subcommand research mo GUI, chi player su dung duoc
+- Khi hoc xong vat pham se bien mat khoi list do filter lai moi lan mo
+---
+ .../emctech/commands/EmcTechMain.java         |  11 +
+ .../sefiraat/emctech/gui/ResearchGui.java     | 255 ++++++++++++++++++
+ 2 files changed, 266 insertions(+)
+ create mode 100644 src/main/java/io/github/sefiraat/emctech/gui/ResearchGui.java
+
+diff --git a/src/main/java/io/github/sefiraat/emctech/commands/EmcTechMain.java b/src/main/java/io/github/sefiraat/emctech/commands/EmcTechMain.java
+index add70d9..ecd008c 100644
+--- a/src/main/java/io/github/sefiraat/emctech/commands/EmcTechMain.java
++++ b/src/main/java/io/github/sefiraat/emctech/commands/EmcTechMain.java
+@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
+ 
+ import io.github.sefiraat.emctech.EmcTech;
+ import io.github.sefiraat.emctech.emc.EmcStorage;
++import io.github.sefiraat.emctech.gui.ResearchGui;
+ import io.github.sefiraat.emctech.utils.EmcUtils;
+ import io.github.sefiraat.emctech.utils.Theme;
+ 
+@@ -66,6 +67,16 @@ public class EmcTechMain extends BaseCommand {
+         EmcStorage.setEmc(player.getPlayer(), amount);
+     }
+ 
++    @Subcommand("research")
++    @Description("Xem cac vat pham chua hoc EMC")
++    public void research(CommandSender sender) {
++        if (sender instanceof Player player) {
++            ResearchGui.open(player);
++        } else {
++            sendPlayerOnlyMessage(sender);
++        }
++    }
++
+     public void sendPlayerOnlyMessage(CommandSender sender) {
+         sender.sendMessage(Theme.ERROR + "只有玩家才能执行该指令.");
+     }
+diff --git a/src/main/java/io/github/sefiraat/emctech/gui/ResearchGui.java b/src/main/java/io/github/sefiraat/emctech/gui/ResearchGui.java
+new file mode 100644
+index 0000000..6d11e6a
+--- /dev/null
++++ b/src/main/java/io/github/sefiraat/emctech/gui/ResearchGui.java
+@@ -0,0 +1,255 @@
++package io.github.sefiraat.emctech.gui;
++
++import java.text.MessageFormat;
++import java.util.ArrayList;
++import java.util.Comparator;
++import java.util.List;
++
++import org.bukkit.Material;
++import org.bukkit.Sound;
++import org.bukkit.entity.Player;
++import org.bukkit.inventory.ItemStack;
++
++import io.github.sefiraat.emctech.emc.EmcCalculator;
++import io.github.sefiraat.emctech.emc.EmcStorage;
++import io.github.sefiraat.emctech.utils.EmcUtils;
++import io.github.sefiraat.emctech.utils.Theme;
++import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
++import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
++import io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils;
++
++import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu;
++
++import net.guizhanss.guizhanlib.minecraft.helper.MaterialHelper;
++import net.md_5.bungee.api.ChatColor;
++
++public final class ResearchGui {
++
++    private static final int PAGE_SIZE = 36;
++    private static final int GUIDE_BACK = 1;
++    private static final int GUIDE_STATS = 7;
++    private static final int PAGE_PREVIOUS = 46;
++    private static final int PAGE_NEXT = 52;
++    private static final int[] HEADER = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8};
++    private static final int[] FOOTER = new int[]{45, 46, 47, 48, 49, 50, 51, 52, 53};
++
++    private ResearchGui() {
++        throw new IllegalStateException("Utility class");
++    }
++
++    public static void open(Player player) {
++        open(player, 1);
++    }
++
++    public static void open(Player player, int page) {
++        ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC - Vat pham chua hoc");
++        for (int slot : HEADER) {
++            chestMenu.addItem(slot, ChestMenuUtils.getBackground(), ChestMenuUtils.getEmptyClickHandler());
++        }
++        for (int slot : FOOTER) {
++            chestMenu.addItem(slot, ChestMenuUtils.getBackground(), ChestMenuUtils.getEmptyClickHandler());
++        }
++        chestMenu.setEmptySlotsClickable(false);
++        chestMenu.addMenuOpeningHandler(p -> p.playSound(p.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1.0F, 1.0F));
++        setupPage(player, chestMenu, page);
++        chestMenu.open(player);
++    }
++
++    private static void setupPage(Player player, ChestMenu menu, int page) {
++        List<ResearchEntry> entries = getUnlearnedEntries(player);
++        int numberOfEntries = entries.size();
++        int totalPages = (int) Math.ceil(numberOfEntries / (double) PAGE_SIZE);
++        if (totalPages == 0) {
++            totalPages = 1;
++        }
++        if (page < 1) {
++            page = 1;
++        }
++        if (page > totalPages) {
++            page = totalPages;
++        }
++        int start = (page - 1) * PAGE_SIZE;
++        int end = Math.min(start + PAGE_SIZE, numberOfEntries);
++        List<ResearchEntry> subList = numberOfEntries == 0 ? new ArrayList<>() : entries.subList(start, end);
++        player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1.0F, 1.0F);
++        reapplyFooter(player, menu, page, totalPages);
++        menu.replaceExistingItem(GUIDE_BACK, ChestMenuUtils.getBackButton(player, "", "&7Quay lai"));
++        menu.addMenuClickHandler(GUIDE_BACK, (p, slot, item, action) -> {
++            p.closeInventory();
++            return false;
++        });
++        menu.replaceExistingItem(GUIDE_STATS, getPlayerInfoStack(player, numberOfEntries, totalPages, page));
++        menu.addMenuClickHandler(GUIDE_STATS, ChestMenuUtils.getEmptyClickHandler());
++        if (numberOfEntries == 0) {
++            for (int i = 0; i < 36; i++) {
++                int slot = i + 9;
++                menu.replaceExistingItem(slot, null);
++                menu.addMenuClickHandler(slot, ChestMenuUtils.getEmptyClickHandler());
++            }
++            ItemStack done = new CustomItemStack(
++                Material.EMERALD,
++                Theme.SUCCESS + "Da hoc tat ca!",
++                Theme.PASSIVE + "Ban da hoc tat ca vat pham co EMC."
++            );
++            menu.replaceExistingItem(22, done);
++            menu.addMenuClickHandler(22, ChestMenuUtils.getEmptyClickHandler());
++            return;
++        }
++        for (int i = 0; i < 36; i++) {
++            int slot = i + 9;
++            if (i < subList.size()) {
++                ResearchEntry entry = subList.get(i);
++                ItemStack icon = buildIcon(entry);
++                menu.replaceExistingItem(slot, icon);
++            } else {
++                menu.replaceExistingItem(slot, null);
++            }
++            menu.addMenuClickHandler(slot, ChestMenuUtils.getEmptyClickHandler());
++        }
++    }
++
++    private static void reapplyFooter(Player player, ChestMenu menu, int page, int totalPages) {
++        for (int slot : FOOTER) {
++            menu.replaceExistingItem(slot, ChestMenuUtils.getBackground());
++            menu.addMenuClickHandler(slot, ChestMenuUtils.getEmptyClickHandler());
++        }
++        menu.replaceExistingItem(PAGE_PREVIOUS, ChestMenuUtils.getPreviousButton(player, page, totalPages));
++        menu.addMenuClickHandler(PAGE_PREVIOUS, (p, slot, item, action) -> {
++            int previous = page - 1;
++            if (previous >= 1) {
++                setupPage(p, menu, previous);
++            }
++            return false;
++        });
++        menu.replaceExistingItem(PAGE_NEXT, ChestMenuUtils.getNextButton(player, page, totalPages));
++        menu.addMenuClickHandler(PAGE_NEXT, (p, slot, item, action) -> {
++            int next = page + 1;
++            if (next <= totalPages) {
++                setupPage(p, menu, next);
++            }
++            return false;
++        });
++    }
++
++    private static ItemStack getPlayerInfoStack(Player player, int unlearned, int totalPages, int page) {
++        ChatColor color = Theme.CLICK_INFO.getColor();
++        ChatColor passive = Theme.PASSIVE.getColor();
++        List<String> lore = new ArrayList<>();
++        int totalVanilla = EmcCalculator.getVanillaEmcValuesFiltered().size();
++        int totalSlimefun = EmcCalculator.getSlimefunEmcValuesFiltered().size();
++        int totalAll = totalVanilla + totalSlimefun;
++        int learnedVanilla = EmcStorage.getAmountLearned(player, true);
++        int learnedSlimefun = EmcStorage.getAmountLearned(player, false);
++        int learnedAll = learnedVanilla + learnedSlimefun;
++        lore.add(MessageFormat.format("{0}Chua hoc: {1}{2}", color, passive, unlearned));
++        lore.add(MessageFormat.format("{0}Da hoc: {1}{2}/{3}", color, passive, learnedAll, totalAll));
++        lore.add(MessageFormat.format("{0}Trang: {1}{2}/{3}", color, passive, page, totalPages));
++        lore.add("");
++        lore.add(MessageFormat.format("{0}Dat vat pham vao Dematerializer", passive));
++        lore.add(MessageFormat.format("{0}de hoc va nhan EMC", passive));
++        return new CustomItemStack(
++            Material.TARGET,
++            Theme.MAIN.getColor() + "Thong tin",
++            lore.toArray(new String[0])
++        );
++    }
++
++    private static List<ResearchEntry> getUnlearnedEntries(Player player) {
++        List<ResearchEntry> list = new ArrayList<>();
++        for (String id : EmcCalculator.getVanillaEmcValuesFiltered().keySet()) {
++            if (!EmcStorage.hasLearnedItem(player, id, true)) {
++                list.add(new ResearchEntry(true, id));
++            }
++        }
++        for (String id : EmcCalculator.getSlimefunEmcValuesFiltered().keySet()) {
++            if (!EmcStorage.hasLearnedItem(player, id, false)) {
++                SlimefunItem sf = SlimefunItem.getById(id);
++                if (sf == null || sf.isDisabled()) {
++                    continue;
++                }
++                list.add(new ResearchEntry(false, id));
++            }
++        }
++        list.sort(Comparator.comparing(entry -> {
++            if (entry.vanilla) {
++                try {
++                    return MaterialHelper.getName(entry.id);
++                } catch (Exception e) {
++                    return entry.id;
++                }
++            } else {
++                SlimefunItem sf = SlimefunItem.getById(entry.id);
++                if (sf == null) {
++                    return entry.id;
++                }
++                return ChatColor.stripColor(sf.getItemName());
++            }
++        }, String.CASE_INSENSITIVE_ORDER));
++        return list;
++    }
++
++    private static ItemStack buildIcon(ResearchEntry entry) {
++        if (entry.vanilla) {
++            String displayName;
++            try {
++                displayName = MaterialHelper.getName(entry.id);
++            } catch (Exception e) {
++                displayName = entry.id;
++            }
++            Material mat;
++            try {
++                mat = Material.valueOf(entry.id);
++            } catch (Exception e) {
++                mat = Material.BARRIER;
++            }
++            double emc = EmcUtils.getEmcValue(entry.id, true);
++            double emcMult = EmcUtils.getEmcValueMultiplied(entry.id, true);
++            List<String> lore = new ArrayList<>();
++            lore.add(MessageFormat.format("{0}Chua hoc", Theme.ERROR + "" + ChatColor.BOLD));
++            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Phan ra)", EmcUtils.EMC_FORMAT_GUIDE.format(emc)));
++            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Tai tao)", EmcUtils.EMC_FORMAT_GUIDE.format(emcMult)));
++            lore.add("");
++            lore.add(Theme.PASSIVE + "Dat vao Dematerializer de hoc");
++            return new CustomItemStack(
++                mat,
++                Theme.ERROR + displayName,
++                lore.toArray(new String[0])
++            );
++        } else {
++            SlimefunItem sf = SlimefunItem.getById(entry.id);
++            if (sf == null) {
++                return new CustomItemStack(Material.BARRIER, Theme.ERROR + entry.id, Theme.PASSIVE + "Khong tim thay vat pham");
++            }
++            double emc = EmcUtils.getEmcValue(sf);
++            double emcMult = EmcUtils.getEmcValueMultiplied(sf);
++            String name = sf.getItemName();
++            String stripped = ChatColor.stripColor(name);
++            if (stripped == null || stripped.isEmpty()) {
++                stripped = entry.id;
++            }
++            List<String> lore = new ArrayList<>();
++            lore.add(MessageFormat.format("{0}Chua hoc", Theme.ERROR + "" + ChatColor.BOLD));
++            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Phan ra)", EmcUtils.EMC_FORMAT_GUIDE.format(emc)));
++            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Tai tao)", EmcUtils.EMC_FORMAT_GUIDE.format(emcMult)));
++            lore.add("");
++            lore.add(Theme.PASSIVE + "Dat vao Dematerializer de hoc");
++            ItemStack base = sf.getItem().clone();
++            base.setAmount(1);
++            return new CustomItemStack(
++                base,
++                Theme.ERROR + stripped,
++                lore.toArray(new String[0])
++            );
++        }
++    }
++
++    private static final class ResearchEntry {
++        final boolean vanilla;
++        final String id;
++
++        ResearchEntry(boolean vanilla, String id) {
++            this.vanilla = vanilla;
++            this.id = id;
++        }
++    }
++}
+-- 
+2.47.3
+
