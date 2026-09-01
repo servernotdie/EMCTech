@@ -1,0 +1,165 @@
+From 9d96f5b596f5dc91aa2a9ef2c5e1d77166b73514 Mon Sep 17 00:00:00 2001
+From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
+Date: Tue, 1 Sep 2026 23:39:05 +0700
+Subject: [PATCH] feat: skip multiblock and add addon exclude list config
+
+- EmcUtils.isRecipeTypeAllowed: bo qua RecipeType.MULTIBLOCK (ca key multiblock) de khong tinh EMC cho multiblock
+- ConfigManager: ho tro blacklisted-addons dang list (SlimeTinker: [] se loai toan bo addon), them excluded-addons section ho tro dang addon: [] hoac addon: [ITEM1, ITEM2], them isItemExcluded de check per-item
+- EmcCalculator.getItemValueSlimefun: bo qua item neu isItemExcluded, tranh load toan bo addon khi config la []
+- config.yml: them mau excluded-addons: SlimeTinker: []
+---
+ .../sefiraat/emctech/emc/EmcCalculator.java   |  5 ++
+ .../emctech/managers/ConfigManager.java       | 66 ++++++++++++++++++-
+ .../sefiraat/emctech/utils/EmcUtils.java      |  8 +++
+ src/main/resources/config.yml                 |  2 +
+ 4 files changed, 78 insertions(+), 3 deletions(-)
+
+diff --git a/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java b/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java
+index e7ecab8..cf08663 100644
+--- a/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java
++++ b/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java
+@@ -589,6 +589,11 @@ public final class EmcCalculator {
+             return 0;
+         }
+ 
++        if (ConfigManager.isItemExcluded(slimefunItem.getAddon().getName(), slimefunItem.getId())) {
++            sendDebugMessage(nestingLevel, "Item is excluded via config.");
++            return 0;
++        }
++
+         final String id = slimefunItem.getId();
+ 
+         if (history.contains(id)) {
+diff --git a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
+index 4ae3f5a..1b0c626 100644
+--- a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
++++ b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
+@@ -30,6 +30,7 @@ public class ConfigManager {
+     private final Json playerLearnedItems;
+ 
+     private final List<String> blacklistedAddons = new ArrayList<>();
++    private final Map<String, java.util.Set<String>> excludedItemsPerAddon = new HashMap<>();
+ 
+     public ConfigManager() {
+         instance = this;
+@@ -40,9 +41,57 @@ public class ConfigManager {
+         final ConfigurationSection section = EmcTech.getInstance()
+                                                     .getConfig()
+                                                     .getConfigurationSection("blacklisted-addons");
+-        for (String key : section.getKeys(false)) {
+-            if (section.getBoolean(key)) {
+-                blacklistedAddons.add(key);
++        if (section != null) {
++            for (String key : section.getKeys(false)) {
++                if (section.isList(key)) {
++                    List<String> list = section.getStringList(key);
++                    if (list.isEmpty()) {
++                        blacklistedAddons.add(key);
++                    } else {
++                        excludedItemsPerAddon.computeIfAbsent(key, k -> new java.util.HashSet<>()).addAll(list);
++                    }
++                } else if (section.isBoolean(key) && section.getBoolean(key)) {
++                    blacklistedAddons.add(key);
++                } else {
++                    Object val = section.get(key);
++                    if (val instanceof List) {
++                        List<?> list = (List<?>) val;
++                        if (list.isEmpty()) {
++                            blacklistedAddons.add(key);
++                        } else {
++                            java.util.Set<String> set = new java.util.HashSet<>();
++                            for (Object o : list) set.add(String.valueOf(o));
++                            excludedItemsPerAddon.put(key, set);
++                        }
++                    } else if (val instanceof Boolean && (Boolean) val) {
++                        blacklistedAddons.add(key);
++                    }
++                }
++            }
++        }
++        final ConfigurationSection excluded = EmcTech.getInstance().getConfig().getConfigurationSection("excluded-addons");
++        if (excluded != null) {
++            for (String key : excluded.getKeys(false)) {
++                if (excluded.isList(key)) {
++                    List<String> list = excluded.getStringList(key);
++                    if (list.isEmpty()) {
++                        if (!blacklistedAddons.contains(key)) blacklistedAddons.add(key);
++                    } else {
++                        excludedItemsPerAddon.computeIfAbsent(key, k -> new java.util.HashSet<>()).addAll(list);
++                    }
++                } else {
++                    Object val = excluded.get(key);
++                    if (val instanceof List) {
++                        List<?> list = (List<?>) val;
++                        if (list.isEmpty()) {
++                            if (!blacklistedAddons.contains(key)) blacklistedAddons.add(key);
++                        } else {
++                            java.util.Set<String> set = new java.util.HashSet<>();
++                            for (Object o : list) set.add(String.valueOf(o));
++                            excludedItemsPerAddon.computeIfAbsent(key, k -> new java.util.HashSet<>()).addAll(set);
++                        }
++                    }
++                }
+             }
+         }
+ 
+@@ -148,6 +197,10 @@ public class ConfigManager {
+         return this.blacklistedAddons;
+     }
+ 
++    public Map<String, java.util.Set<String>> getExcludedItemsPerAddon() {
++        return this.excludedItemsPerAddon;
++    }
++
+     public static boolean isAddonBlacklisted(@Nonnull String addonName) {
+         for (String blacklistedAddon : instance.getBlacklistedAddons()) {
+             if (blacklistedAddon.equals(addonName)) {
+@@ -157,6 +210,13 @@ public class ConfigManager {
+         return false;
+     }
+ 
++    public static boolean isItemExcluded(@Nonnull String addonName, @Nonnull String itemId) {
++        if (instance == null) return false;
++        java.util.Set<String> set = instance.excludedItemsPerAddon.get(addonName);
++        if (set != null && set.contains(itemId)) return true;
++        return isAddonBlacklisted(addonName);
++    }
++
+     @Nonnull
+     public static ConfigManager getInstance() {
+         return instance;
+diff --git a/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java b/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
+index aa7ee03..8ba9534 100644
+--- a/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
++++ b/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
+@@ -76,6 +76,14 @@ public final class EmcUtils {
+         if (recipeType == RecipeType.NULL) {
+             return false;
+         }
++        if (recipeType == RecipeType.MULTIBLOCK) {
++            return false;
++        }
++        try {
++            if (recipeType.getKey().getKey().equals("multiblock")) {
++                return false;
++            }
++        } catch (Throwable ignored) {}
+         return true;
+     }
+ 
+diff --git a/src/main/resources/config.yml b/src/main/resources/config.yml
+index 0949eb3..659a94d 100644
+--- a/src/main/resources/config.yml
++++ b/src/main/resources/config.yml
+@@ -17,6 +17,8 @@ auto-update: true
+ debug-messages: false
+ blacklisted-addons:
+   ColoredEnderChests: true
++excluded-addons:
++  SlimeTinker: []
+ emc-values:
+   vanilla:
+     GRASS_BLOCK: 1
+-- 
+2.47.3
+
