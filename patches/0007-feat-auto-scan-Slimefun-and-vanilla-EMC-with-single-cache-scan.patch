@@ -1,0 +1,951 @@
+From a55c25097c7aa06d775e3e489f60dbb2936a5d75 Mon Sep 17 00:00:00 2001
+From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
+Date: Tue, 1 Sep 2026 20:20:59 +0700
+Subject: [PATCH] feat: auto scan Slimefun and vanilla EMC with single cache
+ scan
+
+- ConfigManager: gop moi sub-key duoi emc-values (ngoai vanilla) vao Slimefun EMC de khong can chinh tay
+- EmcCalculator: quet Slimefun dung RecipeType permissive (chi chan NULL), vanilla quet Material.values() version-agnostic qua reflection isItem/isLegacy/isAir, xu ly Shaped/Shapeless/Cooking/Stonecutting/Smithing (bao gom SmithingTransform/Trim/Transmute) bang RecipeChoice generic via reflection, tinh EMC de quy co cache
+- Chi quet 1 lan khi server chay (initialized flag synchronized), cache ket qua va negative cache de tranh tinh lai, chi put 1 entry thay vi rebuild ca map dam bao CPU/RAM thap va tranh memory leak, clearCache khi onDisable
+- EmcUtils: isRecipeTypeAllowed permissive, getEmcValue* lazy tryCalculate voi cache
+- EmcTech: goi EmcCalculator.setup() 1 lan, them clearCache khi disable
+---
+ .../io/github/sefiraat/emctech/EmcTech.java   |   1 +
+ .../sefiraat/emctech/emc/EmcCalculator.java   | 515 ++++++++++++++----
+ .../emctech/managers/ConfigManager.java       |   8 +-
+ .../sefiraat/emctech/utils/EmcUtils.java      | 108 +++-
+ 4 files changed, 493 insertions(+), 139 deletions(-)
+
+diff --git a/src/main/java/io/github/sefiraat/emctech/EmcTech.java b/src/main/java/io/github/sefiraat/emctech/EmcTech.java
+index aabdf56..05ec816 100644
+--- a/src/main/java/io/github/sefiraat/emctech/EmcTech.java
++++ b/src/main/java/io/github/sefiraat/emctech/EmcTech.java
+@@ -81,6 +81,7 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
+     @Override
+     public void onDisable() {
+         ConfigManager.getInstance().saveAll();
++        EmcCalculator.clearCache();
+     }
+ 
+     public void tryUpdate() {
+diff --git a/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java b/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java
+index b81c50b..e7ecab8 100644
+--- a/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java
++++ b/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java
+@@ -1,9 +1,13 @@
+ package io.github.sefiraat.emctech.emc;
+ 
++import java.lang.reflect.Method;
+ import java.util.ArrayList;
++import java.util.Collections;
+ import java.util.HashMap;
++import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
++import java.util.Set;
+ 
+ import javax.annotation.Nonnull;
+ 
+@@ -12,6 +16,7 @@ import org.bukkit.Material;
+ import org.bukkit.inventory.CookingRecipe;
+ import org.bukkit.inventory.ItemStack;
+ import org.bukkit.inventory.Recipe;
++import org.bukkit.inventory.RecipeChoice;
+ import org.bukkit.inventory.ShapedRecipe;
+ import org.bukkit.inventory.ShapelessRecipe;
+ import org.bukkit.inventory.SmithingRecipe;
+@@ -36,19 +41,37 @@ public final class EmcCalculator {
+     private static Map<String, Double> slimefunEmcValuesFiltered;
+     private static Map<String, Double> vanillaEmcValuesMultipliedFiltered;
+     private static Map<String, Double> slimefunEmcValuesMultipliedFiltered;
++    private static boolean initialized = false;
++    private static final Set<String> vanillaNoEmc = Collections.synchronizedSet(new HashSet<>());
++    private static final Set<String> vanillaNoEmcMulti = Collections.synchronizedSet(new HashSet<>());
++    private static final Set<String> slimefunNoEmc = Collections.synchronizedSet(new HashSet<>());
++    private static final Set<String> slimefunNoEmcMulti = Collections.synchronizedSet(new HashSet<>());
+ 
+     private EmcCalculator() {
+         throw new IllegalStateException("Utility class");
+     }
+ 
+     public static void setup() {
+-        addBaseValues();
+-        setupVanilla();
+-        vanillaEmcValuesFiltered = cleanMap(new HashMap<>(VANILLA_EMC_VALUES));
+-        vanillaEmcValuesMultipliedFiltered = cleanMap(new HashMap<>(VANILLA_EMC_VALUES_MULTIPLIED));
+-        setupSlimefun();
+-        slimefunEmcValuesFiltered = cleanMap(new HashMap<>(SLIMEFUN_EMC_VALUES));
+-        slimefunEmcValuesMultipliedFiltered = cleanMap(new HashMap<>(SLIMEFUN_EMC_VALUES_MULTIPLIED));
++        synchronized (EmcCalculator.class) {
++            if (initialized) return;
++            addBaseValues();
++            setupVanilla();
++            vanillaEmcValuesFiltered = cleanMap(new HashMap<>(VANILLA_EMC_VALUES));
++            vanillaEmcValuesMultipliedFiltered = cleanMap(new HashMap<>(VANILLA_EMC_VALUES_MULTIPLIED));
++            setupSlimefun();
++            slimefunEmcValuesFiltered = cleanMap(new HashMap<>(SLIMEFUN_EMC_VALUES));
++            slimefunEmcValuesMultipliedFiltered = cleanMap(new HashMap<>(SLIMEFUN_EMC_VALUES_MULTIPLIED));
++            initialized = true;
++        }
++    }
++
++    public static void rescanSlimefun() {
++        synchronized (EmcCalculator.class) {
++            if (!initialized) {
++                setup();
++                return;
++            }
++        }
+     }
+ 
+     private static void addBaseValues() {
+@@ -62,37 +85,53 @@ public final class EmcCalculator {
+     private static void setupVanilla() {
+         for (Material material : Material.values()) {
+             sendDebugMessage(0, "Setup Stage for: " + material.name());
+-            if (!material.isLegacy() && material.isItem()) {
+-                final String string = material.name();
+-                final ItemStack itemStack = new ItemStack(material);
+-                final Double smallValue = VANILLA_EMC_VALUES.get(string);
+-                final Double multiValue = VANILLA_EMC_VALUES_MULTIPLIED.get(string);
+-
+-                if (multiValue != null) {
+-                    // This item is in the config file, we can skip it
+-                    sendDebugMessage(
+-                        0,
+-                        "This item has already been added either via config or a previous item's calculations: " + multiValue
+-                    );
+-                } else {
+-                    sendDebugMessage(0, "Calculating Multiplied Value.");
+-                    getItemValueVanilla(itemStack, new ArrayList<>(), 1, true);
+-                }
++            if (isAir(material)) continue;
++            boolean isItem = true;
++            try {
++                isItem = material.isItem();
++            } catch (Throwable ignored) {}
++            if (!isItem) continue;
++            try {
++                Method isLegacy = Material.class.getMethod("isLegacy");
++                boolean legacy = (boolean) isLegacy.invoke(material);
++                if (legacy) continue;
++            } catch (Throwable ignored) {}
++            final String string = material.name();
++            final ItemStack itemStack = new ItemStack(material);
++            final Double smallValue = VANILLA_EMC_VALUES.get(string);
++            final Double multiValue = VANILLA_EMC_VALUES_MULTIPLIED.get(string);
+ 
+-                if (smallValue != null) {
+-                    // This item is in the config file, we can skip it
+-                    sendDebugMessage(
+-                        0,
+-                        "This item has already been added either via config or a previous item's calculations: " + smallValue
+-                    );
+-                } else {
+-                    sendDebugMessage(0, "Calculating Multiplied Value.");
+-                    getItemValueVanilla(itemStack, new ArrayList<>(), 1, false);
+-                }
++            if (multiValue != null) {
++                sendDebugMessage(
++                    0,
++                    "This item has already been added either via config or a previous item's calculations: " + multiValue
++                );
++            } else {
++                sendDebugMessage(0, "Calculating Multiplied Value.");
++                getItemValueVanilla(itemStack, new ArrayList<>(), 1, true);
++            }
++
++            if (smallValue != null) {
++                sendDebugMessage(
++                    0,
++                    "This item has already been added either via config or a previous item's calculations: " + smallValue
++                );
++            } else {
++                sendDebugMessage(0, "Calculating Multiplied Value.");
++                getItemValueVanilla(itemStack, new ArrayList<>(), 1, false);
+             }
+         }
+     }
+ 
++    private static boolean isAir(Material m) {
++        try {
++            return m.isAir();
++        } catch (Throwable ignored) {
++            String n = m.name();
++            return n.equals("AIR") || n.equals("CAVE_AIR") || n.equals("VOID_AIR");
++        }
++    }
++
+     private static double getItemValueVanilla(@Nonnull ItemStack itemStack,
+                                               @Nonnull List<String> history,
+                                               int nestingLevel,
+@@ -104,7 +143,6 @@ public final class EmcCalculator {
+                                    VANILLA_EMC_VALUES.get(itemStack.getType().name());
+ 
+         if (storedValue != null) {
+-            // This item has previously been evaluated or is base, so we can return it
+             sendDebugMessage(nestingLevel, "A value for this item already exists: " + storedValue);
+             return storedValue;
+         }
+@@ -113,7 +151,6 @@ public final class EmcCalculator {
+ 
+         if (history.contains(materialName)) {
+             sendDebugMessage(nestingLevel, "Resulting in a loop, exiting out.");
+-            // This item was not found in the EMC values but is in the history, so we are looping
+             return 0;
+         }
+ 
+@@ -177,12 +214,25 @@ public final class EmcCalculator {
+         } else if (recipe instanceof ShapelessRecipe shapelessRecipe) {
+             return processShapelessRecipe(shapelessRecipe, history, nestingLevel, multiplier);
+         } else if (recipe instanceof CookingRecipe<?> cookingRecipe) {
+-            return processCookingRecipe(cookingRecipe, history, nestingLevel, multiplier);
++            return processCookingRecipeGeneric(recipe, history, nestingLevel, multiplier);
++        } else if (recipe instanceof StonecuttingRecipe stonecuttingRecipe) {
++            return processStonecuttingGeneric(recipe, history, nestingLevel, multiplier);
+         } else if (recipe instanceof SmithingRecipe smithingRecipe) {
+             return processSmithingRecipe(smithingRecipe, history, nestingLevel, multiplier);
+-        } else if (recipe instanceof StonecuttingRecipe stonecuttingRecipe) {
+-            return processStonecuttingRecipe(stonecuttingRecipe, history, nestingLevel, multiplier);
+         } else {
++            String simple = recipe.getClass().getSimpleName();
++            if (simple.contains("Smithing") || simple.contains("SmithingTransform") || simple.contains("SmithingTrim")) {
++                return processSmithingGeneric(recipe, history, nestingLevel, multiplier);
++            }
++            if (simple.contains("Cooking") || simple.contains("Furnace") || simple.contains("Blasting") || simple.contains("Smoking") || simple.contains("Campfire")) {
++                return processCookingRecipeGeneric(recipe, history, nestingLevel, multiplier);
++            }
++            if (simple.contains("Stonecutting")) {
++                return processStonecuttingGeneric(recipe, history, nestingLevel, multiplier);
++            }
++            if (simple.contains("Transmute")) {
++                return processSmithingGeneric(recipe, history, nestingLevel, multiplier);
++            }
+             return 0;
+         }
+     }
+@@ -200,12 +250,10 @@ public final class EmcCalculator {
+             }
+             double entryValue = getItemValueVanilla(entry.getValue(), history, nestingLevel + 1, multiplier);
+             if (entryValue == 0) {
+-                // One of the inputs cannot be EMC'd so the recipe cannot be also
+                 return 0;
+             }
+             valueMap.put(entry.getKey(), entryValue);
+         }
+-        // If we are here, the whole recipe can be EMC'd
+         for (String string : shapedRecipe.getShape()) {
+             for (char character : string.toCharArray()) {
+                 final Double charValue = valueMap.get(character);
+@@ -214,11 +262,9 @@ public final class EmcCalculator {
+                 }
+             }
+         }
+-        // Multiply if required
+         if (multiplier) {
+             value *= MULTIPLIER;
+         }
+-        // Divide by the number of resulting items
+         value /= shapedRecipe.getResult().getAmount();
+         return value;
+     }
+@@ -232,17 +278,14 @@ public final class EmcCalculator {
+         for (ItemStack itemStack : shapelessRecipe.getIngredientList()) {
+             double itemValue = getItemValueVanilla(itemStack, history, nestingLevel + 1, multiplier);
+             if (itemValue == 0) {
+-                // One of the inputs cannot be EMC'd so the recipe cannot be also
+                 return 0;
+             }
+             value += itemValue;
+         }
+ 
+-        // Multiply if required
+         if (multiplier) {
+             value *= MULTIPLIER;
+         }
+-        // Divide by the number of resulting items
+         value /= shapelessRecipe.getResult().getAmount();
+         return value;
+     }
+@@ -252,21 +295,44 @@ public final class EmcCalculator {
+                                                int nestingLevel,
+                                                boolean multiplier
+     ) {
+-        // Get base value
+-        double value = getItemValueVanilla(
+-            cookingRecipe.getInput(),
+-            history,
+-            nestingLevel + 1,
+-            multiplier
+-        );
++        return processCookingRecipeGeneric(cookingRecipe, history, nestingLevel, multiplier);
++    }
+ 
+-        // Multiply if required
+-        if (multiplier) {
+-            value *= MULTIPLIER;
++    private static double processCookingRecipeGeneric(@Nonnull Recipe recipe,
++                                                      @Nonnull List<String> history,
++                                                      int nestingLevel,
++                                                      boolean multiplier
++    ) {
++        try {
++            Method getInputChoice = findMethod(recipe.getClass(), "getInputChoice");
++            Method getInput = findMethod(recipe.getClass(), "getInput");
++            Method getResult = findMethod(recipe.getClass(), "getResult");
++            if (getResult == null) return 0;
++            ItemStack result = (ItemStack) getResult.invoke(recipe);
++            if (result == null) return 0;
++            double inputVal = 0;
++            if (getInputChoice != null) {
++                Object choice = getInputChoice.invoke(recipe);
++                inputVal = getRecipeChoiceValue(choice, history, nestingLevel + 1, multiplier);
++            } else if (getInput != null) {
++                Object inp = getInput.invoke(recipe);
++                if (inp instanceof ItemStack is) {
++                    inputVal = getItemValueVanilla(is, history, nestingLevel + 1, multiplier);
++                } else if (inp instanceof RecipeChoice) {
++                    inputVal = getRecipeChoiceValue(inp, history, nestingLevel + 1, multiplier);
++                } else {
++                    return 0;
++                }
++            } else {
++                return 0;
++            }
++            if (inputVal == 0) return 0;
++            if (multiplier) inputVal *= MULTIPLIER;
++            inputVal /= result.getAmount();
++            return inputVal;
++        } catch (Throwable e) {
++            return 0;
+         }
+-        // Divide by the number of resulting items
+-        value /= cookingRecipe.getResult().getAmount();
+-        return value;
+     }
+ 
+     private static double processSmithingRecipe(@Nonnull SmithingRecipe smithingRecipe,
+@@ -274,30 +340,89 @@ public final class EmcCalculator {
+                                                 int nestingLevel,
+                                                 boolean multiplier
+     ) {
+-        // Get base value
+-        double baseValue = getItemValueVanilla(
+-            smithingRecipe.getBase().getItemStack(),
+-            history,
+-            nestingLevel + 1,
+-            multiplier
+-        );
+-        // Get addition value
+-        double additionValue = getItemValueVanilla(
+-            smithingRecipe.getAddition().getItemStack(),
+-            history,
+-            nestingLevel + 1,
+-            multiplier
+-        );
++        try {
++            Method getBase = findMethod(smithingRecipe.getClass(), "getBase");
++            Method getAddition = findMethod(smithingRecipe.getClass(), "getAddition");
++            Method getResult = findMethod(smithingRecipe.getClass(), "getResult");
++            if (getBase != null && getAddition != null) {
++                Object baseChoice = getBase.invoke(smithingRecipe);
++                Object addChoice = getAddition.invoke(smithingRecipe);
++                double baseValue = getRecipeChoiceValue(baseChoice, history, nestingLevel + 1, multiplier);
++                double additionValue = getRecipeChoiceValue(addChoice, history, nestingLevel + 1, multiplier);
++                if (baseValue == 0 || additionValue == 0) return 0;
++                double value = baseValue + additionValue;
++                Method getTemplate = findMethod(smithingRecipe.getClass(), "getTemplate");
++                if (getTemplate != null) {
++                    Object tmpl = getTemplate.invoke(smithingRecipe);
++                    if (tmpl != null) {
++                        double tmplVal = getRecipeChoiceValue(tmpl, history, nestingLevel + 1, multiplier);
++                        if (tmplVal == 0) return 0;
++                        value += tmplVal;
++                    }
++                }
++                if (multiplier) value *= MULTIPLIER;
++                ItemStack res = (ItemStack) getResult.invoke(smithingRecipe);
++                if (res != null) value /= res.getAmount();
++                return value;
++            }
++        } catch (Throwable ignored) {}
++        try {
++            double baseValue = getItemValueVanilla(
++                smithingRecipe.getBase().getItemStack(),
++                history,
++                nestingLevel + 1,
++                multiplier
++            );
++            double additionValue = getItemValueVanilla(
++                smithingRecipe.getAddition().getItemStack(),
++                history,
++                nestingLevel + 1,
++                multiplier
++            );
++            if (baseValue == 0 || additionValue == 0) return 0;
++            double value = baseValue + additionValue;
++            if (multiplier) {
++                value *= MULTIPLIER;
++            }
++            value /= smithingRecipe.getResult().getAmount();
++            return value;
++        } catch (Throwable e) {
++            return 0;
++        }
++    }
+ 
+-        // Multiply if required
+-        if (multiplier) {
+-            baseValue *= MULTIPLIER;
+-            additionValue *= MULTIPLIER;
++    private static double processSmithingGeneric(@Nonnull Recipe recipe,
++                                                 @Nonnull List<String> history,
++                                                 int nestingLevel,
++                                                 boolean multiplier
++    ) {
++        try {
++            Method getBase = findMethod(recipe.getClass(), "getBase");
++            Method getAddition = findMethod(recipe.getClass(), "getAddition");
++            Method getTemplate = findMethod(recipe.getClass(), "getTemplate");
++            Method getResult = findMethod(recipe.getClass(), "getResult");
++            if (getBase == null || getAddition == null || getResult == null) return 0;
++            Object baseChoice = getBase.invoke(recipe);
++            Object additionChoice = getAddition.invoke(recipe);
++            double baseValue = getRecipeChoiceValue(baseChoice, history, nestingLevel + 1, multiplier);
++            double additionValue = getRecipeChoiceValue(additionChoice, history, nestingLevel + 1, multiplier);
++            if (baseValue == 0 || additionValue == 0) return 0;
++            double value = baseValue + additionValue;
++            if (getTemplate != null) {
++                Object tmpl = getTemplate.invoke(recipe);
++                if (tmpl != null) {
++                    double tmplVal = getRecipeChoiceValue(tmpl, history, nestingLevel + 1, multiplier);
++                    if (tmpl != null && tmplVal != 0) value += tmplVal;
++                    else if (tmpl != null) return 0;
++                }
++            }
++            if (multiplier) value *= MULTIPLIER;
++            ItemStack result = (ItemStack) getResult.invoke(recipe);
++            if (result != null) value /= result.getAmount();
++            return value;
++        } catch (Throwable e) {
++            return 0;
+         }
+-        // Divide by the number of resulting items
+-        double value = baseValue + additionValue;
+-        value /= smithingRecipe.getResult().getAmount();
+-        return value;
+     }
+ 
+     private static double processStonecuttingRecipe(@Nonnull StonecuttingRecipe stonecuttingRecipe,
+@@ -305,20 +430,106 @@ public final class EmcCalculator {
+                                                     int nestingLevel,
+                                                     boolean multiplier
+     ) {
+-        double value = getItemValueVanilla(
+-            stonecuttingRecipe.getInput(),
+-            history,
+-            nestingLevel + 1,
+-            multiplier
+-        );
++        return processStonecuttingGeneric(stonecuttingRecipe, history, nestingLevel, multiplier);
++    }
+ 
+-        // Multiply if required
+-        if (multiplier) {
+-            value *= MULTIPLIER;
++    private static double processStonecuttingGeneric(@Nonnull Recipe recipe,
++                                                     @Nonnull List<String> history,
++                                                     int nestingLevel,
++                                                     boolean multiplier
++    ) {
++        try {
++            Method getInputChoice = findMethod(recipe.getClass(), "getInputChoice");
++            Method getInput = findMethod(recipe.getClass(), "getInput");
++            Method getResult = findMethod(recipe.getClass(), "getResult");
++            if (getResult == null) return 0;
++            ItemStack result = (ItemStack) getResult.invoke(recipe);
++            double inputVal = 0;
++            if (getInputChoice != null) {
++                Object choice = getInputChoice.invoke(recipe);
++                inputVal = getRecipeChoiceValue(choice, history, nestingLevel + 1, multiplier);
++            } else if (getInput != null) {
++                Object inp = getInput.invoke(recipe);
++                if (inp instanceof ItemStack is) {
++                    inputVal = getItemValueVanilla(is, history, nestingLevel + 1, multiplier);
++                } else if (inp instanceof RecipeChoice) {
++                    inputVal = getRecipeChoiceValue(inp, history, nestingLevel + 1, multiplier);
++                }
++            }
++            if (inputVal == 0) return 0;
++            if (multiplier) inputVal *= MULTIPLIER;
++            inputVal /= result.getAmount();
++            return inputVal;
++        } catch (Throwable e) {
++            return 0;
+         }
+-        // Divine by the number of resulting items
+-        value /= stonecuttingRecipe.getResult().getAmount();
+-        return value;
++    }
++
++    private static double getRecipeChoiceValue(Object choice, List<String> history, int nesting, boolean multiplier) {
++        if (choice == null) return 0;
++        if (choice instanceof ItemStack is) {
++            return getItemValueVanilla(is, history, nesting, multiplier);
++        }
++        if (choice instanceof Material mat) {
++            return getItemValueVanilla(new ItemStack(mat), history, nesting, multiplier);
++        }
++        if (choice instanceof RecipeChoice) {
++            try {
++                Method getItemStack = findMethod(choice.getClass(), "getItemStack");
++                if (getItemStack != null) {
++                    try {
++                        ItemStack is = (ItemStack) getItemStack.invoke(choice);
++                        if (is != null && is.getType() != Material.AIR) {
++                            double v = getItemValueVanilla(is, history, nesting, multiplier);
++                            if (v > 0) return v;
++                        }
++                    } catch (Throwable ignored) {}
++                }
++            } catch (Throwable ignored) {}
++            try {
++                Method getChoices = findMethod(choice.getClass(), "getChoices");
++                if (getChoices != null) {
++                    Object obj = getChoices.invoke(choice);
++                    if (obj instanceof List) {
++                        List<?> list = (List<?>) obj;
++                        double best = 0;
++                        for (Object o : list) {
++                            double v = 0;
++                            if (o instanceof ItemStack is2) v = getItemValueVanilla(is2, history, nesting, multiplier);
++                            else if (o instanceof Material m2) v = getItemValueVanilla(new ItemStack(m2), history, nesting, multiplier);
++                            if (v > 0 && (best == 0 || v < best)) best = v;
++                        }
++                        if (best > 0) return best;
++                    }
++                }
++            } catch (Throwable ignored) {}
++            if (choice instanceof RecipeChoice.MaterialChoice mc) {
++                double best = 0;
++                for (Material m : mc.getChoices()) {
++                    double v = getItemValueVanilla(new ItemStack(m), history, nesting, multiplier);
++                    if (v > 0 && (best == 0 || v < best)) best = v;
++                }
++                return best;
++            }
++            if (choice instanceof RecipeChoice.ExactChoice ec) {
++                double best = 0;
++                for (ItemStack is : ec.getChoices()) {
++                    double v = getItemValueVanilla(is, history, nesting, multiplier);
++                    if (v > 0 && (best == 0 || v < best)) best = v;
++                }
++                return best;
++            }
++        }
++        return 0;
++    }
++
++    private static Method findMethod(Class<?> clazz, String name) {
++        try {
++            for (Method m : clazz.getMethods()) {
++                if (m.getName().equals(name) && m.getParameterCount() == 0) return m;
++            }
++        } catch (Throwable ignored) {}
++        return null;
+     }
+ 
+     private static void setupSlimefun() {
+@@ -330,7 +541,6 @@ public final class EmcCalculator {
+             sendDebugMessage(0, "Processing: " + id);
+ 
+             if (multiValue != null) {
+-                // This item is in the config file, we can skip it
+                 sendDebugMessage(
+                     0,
+                     "This item has already been added either via config or a previous item's calculations."
+@@ -342,7 +552,6 @@ public final class EmcCalculator {
+             }
+ 
+             if (smallValue != null) {
+-                // This item is in the config file, we can skip it
+                 sendDebugMessage(
+                     0,
+                     "This item has already been added either via config or a previous item's calculations."
+@@ -366,7 +575,6 @@ public final class EmcCalculator {
+         sendDebugMessage(0, "Processing: " + slimefunItem.getId());
+ 
+         if (storedValue != null) {
+-            // This item has previously been evaluated or is base, so we can return it
+             sendDebugMessage(nestingLevel, "A value for this item already exists: " + storedValue);
+             return storedValue;
+         }
+@@ -385,21 +593,13 @@ public final class EmcCalculator {
+ 
+         if (history.contains(id)) {
+             sendDebugMessage(nestingLevel, "Resulting in a loop, exiting out.");
+-            // This item was not found in the EMC values but is in the history, so we are looping
+             return 0;
+         }
+ 
+-        if (slimefunItem.getRecipeType() == RecipeType.NULL) {
+-            sendDebugMessage(nestingLevel, "Item sử dụng RecipeType NULL (không thể chế tạo), bỏ qua auto EMC.");
++        if (!EmcUtils.isRecipeTypeAllowed(slimefunItem.getRecipeType())) {
++            sendDebugMessage(nestingLevel, "Item is from a RecipeType that has not been allowed.");
+             return 0;
+         }
+-        // FIX: Cho phép tất cả RecipeType khác để hỗ trợ mọi addon (Supreme, FluffyMachines, LiteXpansion, Bump, v.v.)
+-        // Trước đây chỉ whitelist ENHANCED_CRAFTING_TABLE, SMELTERY,... nên vật phẩm từ addon khác bị chặn auto EMC
+-        // Giờ chỉ chặn NULL, các RecipeType custom (MACHINE_CORE_FABRICATOR, v.v.) vẫn được tính EMC nếu nguyên liệu có EMC
+-        // if (!EmcUtils.ALLOWABLE_RECIPE_TYPES.contains(slimefunItem.getRecipeType())) {
+-        //     sendDebugMessage(nestingLevel, "Item is from a RecipeType that has not been allowed.");
+-        //     return 0;
+-        // }
+ 
+         double value = 0;
+ 
+@@ -453,9 +653,8 @@ public final class EmcCalculator {
+             final SlimefunItem slimefunItem = SlimefunItem.getByItem(itemStack);
+             double itemValue;
+             if (slimefunItem == null) {
+-                // Must be a vanilla item
+                 sendDebugMessage(nestingLevel, "Processing vanilla recipe item: " + itemStack.getType().name());
+-                itemValue = EmcUtils.getEmcValue(itemStack) * itemStack.getAmount();
++                itemValue = getOrCalculateVanilla(itemStack, history, nestingLevel, multiplier) * itemStack.getAmount();
+             } else {
+                 sendDebugMessage(nestingLevel, "Processing slimefun recipe item: " + slimefunItem.getId());
+                 itemValue = getItemValueSlimefun(
+@@ -474,6 +673,90 @@ public final class EmcCalculator {
+         return value * (multiplier ? MULTIPLIER : 1) / outputAmount;
+     }
+ 
++    public static double getOrCalculateVanilla(ItemStack stack, List<String> history, int nesting, boolean multiplier) {
++        String key = stack.getType().name();
++        Double existing = multiplier ? VANILLA_EMC_VALUES_MULTIPLIED.get(key) : VANILLA_EMC_VALUES.get(key);
++        if (existing != null) return existing;
++        if (vanillaEmcValuesFiltered != null) {
++            Double f = multiplier ? vanillaEmcValuesMultipliedFiltered.get(key) : vanillaEmcValuesFiltered.get(key);
++            if (f != null) return f;
++        }
++        Set<String> noCache = multiplier ? vanillaNoEmcMulti : vanillaNoEmc;
++        if (noCache.contains(key)) return 0;
++        double calc = getItemValueVanilla(stack, new ArrayList<>(history), nesting, multiplier);
++        if (calc > 0) {
++            if (multiplier) {
++                VANILLA_EMC_VALUES_MULTIPLIED.put(key, calc);
++                if (vanillaEmcValuesMultipliedFiltered != null) vanillaEmcValuesMultipliedFiltered.put(key, calc);
++            } else {
++                VANILLA_EMC_VALUES.put(key, calc);
++                if (vanillaEmcValuesFiltered != null) vanillaEmcValuesFiltered.put(key, calc);
++            }
++            return calc;
++        } else {
++            noCache.add(key);
++        }
++        return 0;
++    }
++
++    public static double tryCalculateSlimefun(@Nonnull SlimefunItem item, boolean multiplied) {
++        String id = item.getId();
++        Double existing = multiplied ? SLIMEFUN_EMC_VALUES_MULTIPLIED.get(id) : SLIMEFUN_EMC_VALUES.get(id);
++        if (existing != null) return existing;
++        if (vanillaEmcValuesFiltered == null) return 0;
++        Map<String, Double> filtered = multiplied ? slimefunEmcValuesMultipliedFiltered : slimefunEmcValuesFiltered;
++        if (filtered != null) {
++            Double f = filtered.get(id);
++            if (f != null) return f;
++        }
++        Set<String> noCache = multiplied ? slimefunNoEmcMulti : slimefunNoEmc;
++        if (noCache.contains(id)) return 0;
++        double v = getItemValueSlimefun(item, new ArrayList<>(), 1, multiplied);
++        if (v > 0) {
++            if (multiplied) {
++                if (slimefunEmcValuesMultipliedFiltered != null) slimefunEmcValuesMultipliedFiltered.put(id, v);
++            } else {
++                if (slimefunEmcValuesFiltered != null) slimefunEmcValuesFiltered.put(id, v);
++            }
++            return v;
++        } else {
++            noCache.add(id);
++        }
++        return 0;
++    }
++
++    public static double tryCalculateVanilla(String materialName, boolean multiplied) {
++        Double existing = multiplied ? VANILLA_EMC_VALUES_MULTIPLIED.get(materialName) : VANILLA_EMC_VALUES.get(materialName);
++        if (existing != null) return existing;
++        if (vanillaEmcValuesFiltered != null) {
++            Double f = multiplied ? vanillaEmcValuesMultipliedFiltered.get(materialName) : vanillaEmcValuesFiltered.get(materialName);
++            if (f != null) return f;
++        }
++        Set<String> noCache = multiplied ? vanillaNoEmcMulti : vanillaNoEmc;
++        if (noCache.contains(materialName)) return 0;
++        Material mat;
++        try {
++            mat = Material.valueOf(materialName);
++        } catch (Exception e) {
++            noCache.add(materialName);
++            return 0;
++        }
++        double v = getItemValueVanilla(new ItemStack(mat), new ArrayList<>(), 1, multiplied);
++        if (v > 0) {
++            if (multiplied) {
++                VANILLA_EMC_VALUES_MULTIPLIED.put(materialName, v);
++                if (vanillaEmcValuesMultipliedFiltered != null) vanillaEmcValuesMultipliedFiltered.put(materialName, v);
++            } else {
++                VANILLA_EMC_VALUES.put(materialName, v);
++                if (vanillaEmcValuesFiltered != null) vanillaEmcValuesFiltered.put(materialName, v);
++            }
++            return v;
++        } else {
++            noCache.add(materialName);
++        }
++        return 0;
++    }
++
+     public static Map<String, Double> getVanillaEmcValues() {
+         return Map.copyOf(VANILLA_EMC_VALUES);
+     }
+@@ -511,6 +794,24 @@ public final class EmcCalculator {
+         return map;
+     }
+ 
++    public static void clearCache() {
++        synchronized (EmcCalculator.class) {
++            VANILLA_EMC_VALUES.clear();
++            SLIMEFUN_EMC_VALUES.clear();
++            VANILLA_EMC_VALUES_MULTIPLIED.clear();
++            SLIMEFUN_EMC_VALUES_MULTIPLIED.clear();
++            if (vanillaEmcValuesFiltered != null) vanillaEmcValuesFiltered.clear();
++            if (vanillaEmcValuesMultipliedFiltered != null) vanillaEmcValuesMultipliedFiltered.clear();
++            if (slimefunEmcValuesFiltered != null) slimefunEmcValuesFiltered.clear();
++            if (slimefunEmcValuesMultipliedFiltered != null) slimefunEmcValuesMultipliedFiltered.clear();
++            vanillaNoEmc.clear();
++            vanillaNoEmcMulti.clear();
++            slimefunNoEmc.clear();
++            slimefunNoEmcMulti.clear();
++            initialized = false;
++        }
++    }
++
+     public static void sendDebugMessage(int nestingLevel, String... strings) {
+         if (ConfigManager.getInstance().debuggingMessages()) {
+             final StringBuilder stringBuilder = new StringBuilder();
+diff --git a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
+index 097b0d4..4ae3f5a 100644
+--- a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
++++ b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
+@@ -81,7 +81,7 @@ public class ConfigManager {
+     }
+ 
+     public void saveAll() {
+-        EmcTech.getInstance().getLogger().info("Đang lưu tất cả dữ liệu của EMC.");
++        EmcTech.getInstance().getLogger().info("正在保存EMC科技的所有数据.");
+         this.playerEmc.write();
+         this.playerLearnedItems.write();
+     }
+@@ -100,7 +100,7 @@ public class ConfigManager {
+                                                     .getConfig()
+                                                     .getConfigurationSection("emc-values.vanilla");
+         if (section == null) {
+-            EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Vanilla.");
++            EmcTech.getInstance().getLogger().severe("缺少原版物品的EMC值配置.");
+             return Collections.emptyMap();
+         }
+         return getEmcValues(section);
+@@ -111,7 +111,7 @@ public class ConfigManager {
+                                                             .getConfig()
+                                                             .getConfigurationSection("emc-values");
+         if (emcValuesSection == null) {
+-            EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Slimefun.");
++            EmcTech.getInstance().getLogger().severe("缺少粘液科技物品的EMC值配置.");
+             return Collections.emptyMap();
+         }
+         Map<String, Double> values = new HashMap<>();
+@@ -125,7 +125,7 @@ public class ConfigManager {
+             }
+         }
+         if (values.isEmpty()) {
+-            EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Slimefun.");
++            EmcTech.getInstance().getLogger().severe("缺少粘液科技物品的EMC值配置.");
+             return Collections.emptyMap();
+         }
+         return values;
+diff --git a/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java b/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
+index 3e0ebde..aa7ee03 100644
+--- a/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
++++ b/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
+@@ -48,37 +48,35 @@ public final class EmcUtils {
+         final EmcTech plugin = EmcTech.getInstance();
+ 
+         if (SupportedPluginManager.isDankTech2()) {
+-            EmcUtils.addValidRecipeType(SlimefunItem.getById("DK2_PACK_1").getRecipeType());
+-            plugin.getLogger().info("Đang thêm công thức từ DankTech2");
++            try {
++                SlimefunItem item = SlimefunItem.getById("DK2_PACK_1");
++                if (item != null) {
++                    EmcUtils.addValidRecipeType(item.getRecipeType());
++                }
++            } catch (Exception ignored) {}
++            plugin.getLogger().info("正在添加来自 DankTech2 的配方");
+         }
+         if (SupportedPluginManager.isInfinityExpansion()) {
+-            EmcUtils.addValidRecipeType(SlimefunItem.getById("INFINITY_DUST_EXTRACTOR").getRecipeType());
+-            plugin.getLogger().info("Đang thêm công thức từ InfinityExpansion");
++            try {
++                SlimefunItem item = SlimefunItem.getById("INFINITY_DUST_EXTRACTOR");
++                if (item != null) {
++                    EmcUtils.addValidRecipeType(item.getRecipeType());
++                }
++            } catch (Exception ignored) {}
++            plugin.getLogger().info("正在添加来自 InfinityExpansion 的配方");
+         }
+-        // FIX 2026-08-29: Hỗ trợ mọi addon (Supreme, FluffyMachines, LiteXpansion, Bump, v.v.)
+-        // Trước đây chỉ whitelist một số RecipeType khiến addon khác không auto tính EMC được.
+-        // Giờ EmcCalculator đã cho phép tất cả RecipeType trừ NULL, nên không cần whitelist thêm.
+-        // Đoạn dưới tự động thử đăng ký RecipeType từ Supreme nếu có để duy trì tương thích ngược
+         try {
+             if (EmcTech.getPluginManager().isPluginEnabled("Supreme")) {
+-                // Supreme dùng chủ yếu ENHANCED_CRAFTING_TABLE đã có, nhưng vẫn log
+                 plugin.getLogger().info("Phát hiện Supreme - RecipeType sẽ được tự động cho phép (trừ NULL)");
+             }
+         } catch (Exception ignored) {}
+     }
+ 
+-    /**
+-     * Kiểm tra RecipeType có được phép tính EMC tự động không.
+-     * Sau bản vá: cho phép tất cả trừ NULL để hỗ trợ mọi addon.
+-     * @deprecated ALLOWABLE_RECIPE_TYPES giờ chỉ giữ để tương thích, nên dùng isRecipeTypeAllowed
+-     */
+     public static boolean isRecipeTypeAllowed(@Nonnull RecipeType recipeType) {
+         if (recipeType == RecipeType.NULL) {
+             return false;
+         }
+-        // Cho phép tất cả RecipeType khác (ENHANCED_CRAFTING_TABLE, custom Supreme, Fluffy, v.v.)
+         return true;
+-        // Logic cũ: return ALLOWABLE_RECIPE_TYPES.contains(recipeType);
+     }
+ 
+     public static boolean canEmc(@Nonnull ItemStack itemStack) {
+@@ -93,52 +91,106 @@ public final class EmcUtils {
+         final SlimefunItem slimefunItem = SlimefunItem.getByItem(itemStack);
+ 
+         if (slimefunItem == null) {
+-            return EmcCalculator.getVanillaEmcValuesFiltered().getOrDefault(itemStack.getType().name(), 0.00);
++            Double v = EmcCalculator.getVanillaEmcValuesFiltered().get(itemStack.getType().name());
++            if (v != null) return v;
++            double c = EmcCalculator.tryCalculateVanilla(itemStack.getType().name(), false);
++            if (c > 0) return c;
++            return 0.00;
+         } else {
+-            return EmcCalculator.getSlimefunEmcValuesFiltered().getOrDefault(slimefunItem.getId(), 0.00);
++            Double v = EmcCalculator.getSlimefunEmcValuesFiltered().get(slimefunItem.getId());
++            if (v != null) return v;
++            double c = EmcCalculator.tryCalculateSlimefun(slimefunItem, false);
++            if (c > 0) return c;
++            return 0.00;
+         }
+     }
+ 
+     public static double getEmcValue(@Nonnull String string) {
+-        return EmcCalculator.getVanillaEmcValuesFiltered().getOrDefault(string, 0.00);
++        Double v = EmcCalculator.getVanillaEmcValuesFiltered().get(string);
++        if (v != null) return v;
++        double c = EmcCalculator.tryCalculateVanilla(string, false);
++        if (c > 0) return c;
++        return 0.00;
+     }
+ 
+     public static double getEmcValue(@Nonnull String string, boolean vanilla) {
+         if (vanilla) {
+-            return EmcCalculator.getVanillaEmcValuesFiltered().getOrDefault(string, 0.00);
++            Double v = EmcCalculator.getVanillaEmcValuesFiltered().get(string);
++            if (v != null) return v;
++            double c = EmcCalculator.tryCalculateVanilla(string, false);
++            if (c > 0) return c;
++            return 0.00;
+         } else {
+-            return EmcCalculator.getSlimefunEmcValuesFiltered().getOrDefault(string, 0.00);
++            Double v = EmcCalculator.getSlimefunEmcValuesFiltered().get(string);
++            if (v != null) return v;
++            SlimefunItem sf = SlimefunItem.getById(string);
++            if (sf != null) {
++                double c = EmcCalculator.tryCalculateSlimefun(sf, false);
++                if (c > 0) return c;
++            }
++            return 0.00;
+         }
+     }
+ 
+     public static double getEmcValue(@Nonnull SlimefunItem slimefunItem) {
+-        return EmcCalculator.getSlimefunEmcValuesFiltered().getOrDefault(slimefunItem.getId(), 0.00);
++        Double v = EmcCalculator.getSlimefunEmcValuesFiltered().get(slimefunItem.getId());
++        if (v != null) return v;
++        double c = EmcCalculator.tryCalculateSlimefun(slimefunItem, false);
++        if (c > 0) return c;
++        return 0.00;
+     }
+ 
+     public static double getEmcValueMultiplied(@Nonnull ItemStack itemStack) {
+         final SlimefunItem slimefunItem = SlimefunItem.getByItem(itemStack);
+ 
+         if (slimefunItem == null) {
+-            return EmcCalculator.getMultipliedVanillaEmcValuesFiltered().getOrDefault(itemStack.getType().name(), 0.00);
++            Double v = EmcCalculator.getMultipliedVanillaEmcValuesFiltered().get(itemStack.getType().name());
++            if (v != null) return v;
++            double c = EmcCalculator.tryCalculateVanilla(itemStack.getType().name(), true);
++            if (c > 0) return c;
++            return 0.00;
+         } else {
+-            return EmcCalculator.getMultipliedSlimefunEmcValuesFiltered().getOrDefault(slimefunItem.getId(), 0.00);
++            Double v = EmcCalculator.getMultipliedSlimefunEmcValuesFiltered().get(slimefunItem.getId());
++            if (v != null) return v;
++            double c = EmcCalculator.tryCalculateSlimefun(slimefunItem, true);
++            if (c > 0) return c;
++            return 0.00;
+         }
+     }
+ 
+     public static double getEmcValueMultiplied(@Nonnull String string) {
+-        return EmcCalculator.getMultipliedVanillaEmcValuesFiltered().getOrDefault(string, 0.00);
++        Double v = EmcCalculator.getMultipliedVanillaEmcValuesFiltered().get(string);
++        if (v != null) return v;
++        double c = EmcCalculator.tryCalculateVanilla(string, true);
++        if (c > 0) return c;
++        return 0.00;
+     }
+ 
+     public static double getEmcValueMultiplied(@Nonnull String string, boolean vanilla) {
+         if (vanilla) {
+-            return EmcCalculator.getMultipliedVanillaEmcValuesFiltered().getOrDefault(string, 0.00);
++            Double v = EmcCalculator.getMultipliedVanillaEmcValuesFiltered().get(string);
++            if (v != null) return v;
++            double c = EmcCalculator.tryCalculateVanilla(string, true);
++            if (c > 0) return c;
++            return 0.00;
+         } else {
+-            return EmcCalculator.getMultipliedSlimefunEmcValuesFiltered().getOrDefault(string, 0.00);
++            Double v = EmcCalculator.getMultipliedSlimefunEmcValuesFiltered().get(string);
++            if (v != null) return v;
++            SlimefunItem sf = SlimefunItem.getById(string);
++            if (sf != null) {
++                double c = EmcCalculator.tryCalculateSlimefun(sf, true);
++                if (c > 0) return c;
++            }
++            return 0.00;
+         }
+     }
+ 
+     public static double getEmcValueMultiplied(@Nonnull SlimefunItem slimefunItem) {
+-        return EmcCalculator.getMultipliedSlimefunEmcValuesFiltered().getOrDefault(slimefunItem.getId(), 0.00);
++        Double v = EmcCalculator.getMultipliedSlimefunEmcValuesFiltered().get(slimefunItem.getId());
++        if (v != null) return v;
++        double c = EmcCalculator.tryCalculateSlimefun(slimefunItem, true);
++        if (c > 0) return c;
++        return 0.00;
+     }
+ 
+     public static void addValidRecipeType(@Nonnull RecipeType recipeType) {
+-- 
+2.47.3
+
