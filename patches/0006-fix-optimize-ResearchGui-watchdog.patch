@@ -1,12 +1,8 @@
-From c594a95013566f1b5df6719d7104ee724fdeefa5 Mon Sep 17 00:00:00 2001
+From c7c04dff3c08d662311d5b145fb2b20f76d6af2b Mon Sep 17 00:00:00 2001
 From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
-Date: Sun, 30 Aug 2026 01:06:30 +0700
-Subject: [PATCH] fix: optimize ResearchGui to prevent Folia watchdog timeout
+Date: Wed, 2 Sep 2026 15:52:15 +0700
+Subject: [PATCH 4/6] temp feature 0006
 
-- Precompute displayName per entry to avoid calling MaterialHelper.getName inside TimSort comparator
-- Bulk check learned items via ConfigManager.getMap once per type instead of per-item hasLearnedItem
-- Reuse displayName in buildIcon to avoid duplicate localization lookup
-- Sort now uses cheap string compare, reduces 5s+ region tick block
 ---
  .../sefiraat/emctech/gui/ResearchGui.java     | 81 ++++++++++---------
  1 file changed, 44 insertions(+), 37 deletions(-)

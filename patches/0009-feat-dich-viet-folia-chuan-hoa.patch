@@ -1,20 +1,21 @@
-From c78b87dda3f622751c08f4f86cddc960f93e9cab Mon Sep 17 00:00:00 2001
+From d6b45a4065d3c63e4263a44e0b4c9fff12f67367 Mon Sep 17 00:00:00 2001
 From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
-Date: Mon, 13 Jul 2026 17:33:32 +0700
-Subject: [PATCH 1/3] feat: Supported folia 1.21.x - 1.26.x , traslated all to
- VietNamese
+Date: Wed, 2 Sep 2026 15:52:32 +0700
+Subject: [PATCH] =?UTF-8?q?feat:=20d=E1=BB=8Bch=20Vi=E1=BB=87t=20+=20Folia?=
+ =?UTF-8?q?=20(chu=E1=BA=A9n=20ho=C3=A1,=20gi=E1=BB=AF=20feature=20ri?=
+ =?UTF-8?q?=C3=AAng)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 ---
- .github/ISSUE_TEMPLATE/bug-report.yml         |  96 +++---
- .github/ISSUE_TEMPLATE/config.yml             |   4 +-
- .github/workflows/maven.yml                   |  41 ++-
- README.md                                     |  38 +--
  install.sh                                    |  20 ++
  libs/Slimefun-Build-a34a69e8.jar              | Bin 0 -> 6899315 bytes
  pom.xml                                       |  48 ++-
  .../io/github/sefiraat/emctech/EmcTech.java   |  14 +-
- .../emctech/commands/EmcTechMain.java         |  18 +-
- .../emctech/managers/ConfigManager.java       |   6 +-
+ .../emctech/commands/EmcTechMain.java         |  20 +-
+ .../sefiraat/emctech/gui/ResearchGui.java     |  36 +--
+ .../emctech/managers/ConfigManager.java       |   8 +-
  .../emctech/managers/RunnableManager.java     |   5 +-
  .../emctech/runnables/SaveConfigRunnable.java |   4 +-
  .../EmcSlimefunDictionaryFlexGroup.java       |   6 +-
@@ -26,283 +27,10 @@ Subject: [PATCH 1/3] feat: Supported folia 1.21.x - 1.26.x , traslated all to
  .../sefiraat/emctech/utils/GuiElements.java   |  66 ++---
  .../github/sefiraat/emctech/utils/Theme.java  |  20 +-
  src/main/resources/plugin.yml                 |   3 +-
- 21 files changed, 381 insertions(+), 304 deletions(-)
+ 18 files changed, 298 insertions(+), 248 deletions(-)
  create mode 100755 install.sh
  create mode 100644 libs/Slimefun-Build-a34a69e8.jar
 
-diff --git a/.github/ISSUE_TEMPLATE/bug-report.yml b/.github/ISSUE_TEMPLATE/bug-report.yml
-index 0d6ae99..47f676f 100644
---- a/.github/ISSUE_TEMPLATE/bug-report.yml
-+++ b/.github/ISSUE_TEMPLATE/bug-report.yml
-@@ -1,5 +1,5 @@
--name: Bug汇报
--description: 反馈本插件的Bug或问题
-+name: Báo cáo lỗi
-+description: Phản hồi lỗi hoặc vấn đề của plugin này
- labels: ["bug"]
- assignees:
-   - ybw0014
-@@ -7,47 +7,47 @@ body:
-   - type: markdown
-     attributes:
-       value: |
--        ## 欢迎来到 SlimefunGuguProject Bug 追踪器
--        你正在反馈 EMCTech 汉化版的 Bug。
--        建议先阅读[这篇文章](https://slimefun-wiki.guizhanss.cn/How-to-report-bugs)了解如何正确地汇报Bug。
-+        ## Chào mừng đến với Trình theo dõi lỗi SlimefunGuguProject
-+        Bạn đang báo cáo lỗi cho bản dịch EMCTech.
-+        Nên đọc [bài viết này](https://slimefun-wiki.guizhanss.cn/How-to-report-bugs) để biết cách báo cáo lỗi đúng cách.
- 
--        <strong><i>你必须填写标注为星号（*）的表单项</i></strong>
-+        <strong><i>Bạn phải điền các mục được đánh dấu sao (*)</i></strong>
- 
-   - type: checkboxes
-     id: checklist
-     attributes:
--      label: 检查项目
--      description: 在汇报之前，你需要确认
-+      label: Mục kiểm tra
-+      description: Trước khi báo cáo, bạn cần xác nhận
-       options:
--        - label: 你使用的是从构建站下载的版本 (https://builds.guizhanss.net)
-+        - label: Bạn đang sử dụng phiên bản tải từ trang build (https://builds.guizhanss.net)
-           required: true
--        - label: 你已经检验过下载的文件的校验和，确认已完整下载文件 (暂未推出)
-+        - label: Bạn đã kiểm tra checksum của tệp đã tải, xác nhận tệp đã tải hoàn chỉnh (chưa ra mắt)
-           required: false
--        - label: 你没有对下载的文件内容进行任何更改
-+        - label: Bạn không thực hiện bất kỳ thay đổi nào với nội dung tệp đã tải
-           required: true
--        - label: 你没有安装`CS-CoreLib`
-+        - label: Bạn chưa cài đặt `CS-CoreLib`
-           required: true
--        - label: 你已经寻找过[已知问题列表](https://github.com/SlimefunGuguProject/EMCTech/issues)，且没有找到相同的问题
-+        - label: Bạn đã tìm kiếm [danh sách vấn đề đã biết](https://github.com/SlimefunGuguProject/EMCTech/issues) và không tìm thấy vấn đề tương tự
-           required: true
- 
-   - type: textarea
-     id: description
-     attributes:
--      label: 问题描述
-+      label: Mô tả vấn đề
-       description: |
--        详细描述你要汇报的问题
--        提供详细的信息能让我们更快地处理问题
--      placeholder: 只说"不能用"没法让开发者定位问题。
-+        Mô tả chi tiết vấn đề bạn muốn báo cáo
-+        Cung cấp thông tin chi tiết giúp chúng tôi xử lý vấn đề nhanh hơn
-+      placeholder: Chỉ nói "không dùng được" không giúp nhà phát triển xác định vấn đề.
-     validations:
-       required: true
- 
-   - type: textarea
-     id: reproduction
-     attributes:
--      label: 复现步骤
-+      label: Các bước tái hiện
-       description: |
--        请详细描述如何才能复现该问题
--        如果有视频，请在此提供视频链接
-+        Vui lòng mô tả chi tiết cách để tái hiện vấn đề này
-+        Nếu có video, vui lòng cung cấp liên kết video tại đây
-       placeholder: |
-         1. xxx
-         2. xxx
-@@ -57,20 +57,20 @@ body:
-   - type: textarea
-     id: expected-behavior
-     attributes:
--      label: 预期行为
-+      label: Hành vi mong đợi
-       description: |
--        你觉得应该发生什么
--        有时候，问题的原因是你误解了某个功能。
-+        Bạn nghĩ điều gì sẽ xảy ra
-+        Đôi khi, nguyên nhân vấn đề là bạn hiểu nhầm chức năng nào đó.
-     validations:
-       required: true
- 
-   - type: input
-     id: server-log
-     attributes:
--      label: 服务器日志
-+      label: Nhật ký máy chủ
-       description: |
--        请查看服务器日志中是否包含任何报错，如果有请上传至 [https://paste.guizhanss.net/](https://paste.guizhanss.net/) 并在此填入链接。
--        **不要直接在这里粘贴日志**
-+        Vui lòng kiểm tra nhật ký máy chủ có chứa bất kỳ lỗi nào không, nếu có hãy tải lên [https://paste.guizhanss.net/](https://paste.guizhanss.net/) và điền liên kết tại đây.
-+        **Không dán trực tiếp nhật ký vào đây**
-       placeholder: https://paste.guizhanss.net/...
-     validations:
-       required: false
-@@ -78,11 +78,11 @@ body:
-   - type: input
-     id: error-report
-     attributes:
--      label: 错误报告
-+      label: Báo cáo lỗi
-       description: |
--        如果服务器日志中提到了`/plugins/Slimefun/error-reports`中的文件（即错误报告）
--        请上传至 [https://paste.guizhanss.net/](https://paste.guizhanss.net/) 并在此填入链接。
--        **不要直接在这里粘贴错误报告**
-+        Nếu nhật ký máy chủ đề cập đến tệp trong `/plugins/Slimefun/error-reports` (tức báo cáo lỗi)
-+        Vui lòng tải lên [https://paste.guizhanss.net/](https://paste.guizhanss.net/) và điền liên kết tại đây.
-+        **Không dán trực tiếp báo cáo lỗi vào đây**
-       placeholder: https://paste.guizhanss.net/...
-     validations:
-       required: false
-@@ -90,59 +90,59 @@ body:
-   - type: dropdown
-     id: server-software
-     attributes:
--      label: 服务端软件
--      description: 请选择你服务端所使用的软件
-+      label: Phần mềm máy chủ
-+      description: Vui lòng chọn phần mềm máy chủ bạn đang sử dụng
-       options:
-         - Spigot
-         - Paper
-         - Purpur
-         - Airplane
--        - 其他 (请在问题描述里写明)
-+        - Khác (vui lòng ghi rõ trong mô tả vấn đề)
-     validations:
-       required: true
- 
-   - type: dropdown
-     id: minecraft-version
-     attributes:
--      label: Minecraft 版本
--      description: 请选择你的 Minecraft 版本
-+      label: Phiên bản Minecraft
-+      description: Vui lòng chọn phiên bản Minecraft của bạn
-       options:
-         - 1.18.x
-         - 1.17.x
-         - 1.16.x
--        - 本插件不支持旧版本
-+        - Plugin này không hỗ trợ phiên bản cũ
-     validations:
-       required: true
- 
-   - type: checkboxes
-     id: cscorelib-version
-     attributes:
--      label: CS-CoreLib 版本
-+      label: Phiên bản CS-CoreLib
-       description: |
--        从2021年1月30日起，Slimefun以及其附属插件都不再需要安装CS-CoreLib。
--        保留CS-CoreLib可能导致一些未知的问题。
-+        Từ ngày 30 tháng 1 năm 2021, Slimefun và các plugin phụ trợ không cần cài đặt CS-CoreLib nữa.
-+        Giữ lại CS-CoreLib có thể gây ra một số vấn đề không mong muốn.
-       options:
--        - label: 我没有安装CS-CoreLib
-+        - label: Tôi chưa cài đặt CS-CoreLib
-           required: true
- 
-   - type: textarea
-     id: slimefun-version
-     attributes:
--      label: Slimefun版本
-+      label: Phiên bản Slimefun
-       description: |
--        请填写Slimefun版本
--        (例如 v4.9-canary-08120db)
--        如果你有管理员权限，建议运行`/sf versions`指令，截图并在此上传指令输出的**所有内容**。
-+        Vui lòng điền phiên bản Slimefun
-+        (ví dụ v4.9-canary-08120db)
-+        Nếu bạn có quyền admin, hãy chạy lệnh `/sf versions`, chụp ảnh màn hình và tải lên **tất cả** nội dung đầu ra tại đây.
-     validations:
-       required: true
- 
-   - type: input
-     id: version-plugin
-     attributes:
--      label: 插件版本
-+      label: Phiên bản plugin
-       description: |
--        请填写插件版本
--        只需填写Build后面的数字版本即可
--        (`Build 7 zh-CN(ybw0014) (git 9ef7fee)`只需填写`7`即可)
-+        Vui lòng điền phiên bản plugin
-+        Chỉ cần điền số phiên bản sau Build
-+        (`Build 7 zh-CN(ybw0014) (git 9ef7fee)` chỉ cần điền `7`)
-     validations:
-       required: true
-diff --git a/.github/ISSUE_TEMPLATE/config.yml b/.github/ISSUE_TEMPLATE/config.yml
-index c3e881d..f28f195 100644
---- a/.github/ISSUE_TEMPLATE/config.yml
-+++ b/.github/ISSUE_TEMPLATE/config.yml
-@@ -1,5 +1,5 @@
- blank_issues_enabled: false
- contact_links:
--  - name: 没有 Github 账号? 不会使用 Github?
-+  - name: Không có tài khoản Github? Không biết sử dụng Github?
-     url: https://ybw0014.net/go/sf-qgroup
--    about: 点击右侧按钮加入QQ群进行反馈
-+    about: Nhấp vào nút bên phải để tham gia nhóm QQ và gửi phản hồi
-diff --git a/README.md b/README.md
-index b3c041d..75c323c 100644
---- a/README.md
-+++ b/README.md
-@@ -1,15 +1,15 @@
--# EMCTech - EMC科技
-+# EMCTech - EMC Kỹ thuật
- 
--这是一个Slimefun4附属插件，将EMC2与等价交换(EquivalencyTech)整合起来的全新附属。
-+Đây là một plugin phụ trợ cho Slimefun4, tích hợp EMC2 với EquivalencyTech.
- 
--玩家可以使用解构机分解原版或粘液科技物品，来获得EMC值。  
--通过重构机，玩家可以使用EMC值来重构已经分解过的物品。
-+Người chơi có thể sử dụng Máy giải cấu để phân hủy vật phẩm Vanilla hoặc Slimefun để nhận giá trị EMC.  
-+Thông qua Máy tái cấu, người chơi có thể dùng EMC để tái tạo lại vật phẩm đã phân hủy.
- 
--另外，如果服务器中同时安装了网络(Networks)附属，玩家还可以使用网络EMC重构机，让重构出的物品直接接入网络中。
-+Ngoài ra, nếu máy chủ cài đặt plugin Networks, người chơi có thể sử dụng Máy tái cấu EMC Mạng để đưa vật phẩm tái tạo trực tiếp vào mạng lưới.
- 
--## 下载
-+## Tải xuống
- 
--点击这里下载 EMCTech: [下载 EMCTech](https://builds.guizhanss.net/SlimefunGuguProject/EMCTech/master)
-+Nhấp vào đây để tải EMCTech: [Tải EMCTech](https://builds.guizhanss.net/SlimefunGuguProject/EMCTech/master)
- 
- <p align="center">
-   <a href="https://github.com/SlimefunGuguProject/EMCTech/actions/workflows/maven.yml">
-@@ -20,22 +20,22 @@
-   </a>
- </p>
- 
--## 指令与权限
-+## Lệnh & Quyền hạn
- 
--本插件所有指令均以`/emctech`或`/emc`开头。  
--下方列表将使用`/emc`进行说明。
-+Tất cả lệnh đều bắt đầu bằng `/emctech` hoặc `/emc`.  
-+Danh sách dưới đây sử dụng `/emc` để minh họa.
- 
--`<>`为必填参数, `[]`为可选参数
-+`<>` là tham số bắt buộc, `[]` là tham số tùy chọn
- 
--| 指令 | 说明 | 所需权限 |
-+| Lệnh | Mô tả | Quyền hạn |
- | --- | --- | ------- |
--| `/emc emc` | 显示自己的EMC值 | 无 |
--| `/emc viewemc <玩家名称>` | 查看指定玩家的EMC值 | `EMCTech.Admin` |
--| `/emc addemc <玩家名称> <数量>` | 增加指定玩家的EMC值 | `EMCTech.Admin` |
--| `/emc setemc <玩家名称> <数量>` | 设置指定玩家的EMC值 | `EMCTech.Admin` |
-+| `/emc emc` | Hiển thị EMC của bạn | Không |
-+| `/emc viewemc <tên_người_chơi>` | Xem EMC của người chơi | `EMCTech.Admin` |
-+| `/emc addemc <tên_người_chơi> <số_lượng>` | Thêm EMC cho người chơi | `EMCTech.Admin` |
-+| `/emc setemc <tên_người_chơi> <số_lượng>` | Đặt EMC cho người chơi | `EMCTech.Admin` |
- 
- ## PlaceholderAPI
- 
--- `%emctech_current_emc%` - 玩家当前EMC值
--- `%emctech_amount_learned_vanilla%` - 玩家已解锁原版物品的数量
--- `%emctech_amount_learned_slimefun%` - 玩家已解锁粘液科技物品的数量
-+- `%emctech_current_emc%` - Giá trị EMC hiện tại của người chơi
-+- `%emctech_amount_learned_vanilla%` - Số lượng vật phẩm Vanilla đã mở khóa
-+- `%emctech_amount_learned_slimefun%` - Số lượng vật phẩm Slimefun đã mở khóa
 diff --git a/install.sh b/install.sh
 new file mode 100755
 index 0000000..142e240
@@ -119033,7 +118761,7 @@ index 33f4b83..cee4f2b 100644
          <!-- Tools etc. -->
          <dependency>
 diff --git a/src/main/java/io/github/sefiraat/emctech/EmcTech.java b/src/main/java/io/github/sefiraat/emctech/EmcTech.java
-index 55c2616..aabdf56 100644
+index bfdf977..05ec816 100644
 --- a/src/main/java/io/github/sefiraat/emctech/EmcTech.java
 +++ b/src/main/java/io/github/sefiraat/emctech/EmcTech.java
 @@ -22,6 +22,8 @@ import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
@@ -119075,7 +118803,7 @@ index 55c2616..aabdf56 100644
          getLogger().info("########################################");
  
          saveDefaultConfig();
-@@ -127,4 +131,8 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
+@@ -128,4 +132,8 @@ public class EmcTech extends JavaPlugin implements SlimefunAddon {
      public static RunnableManager getRunnableManager() {
          return EmcTech.getInstance().runnableManager;
      }
@@ -119085,10 +118813,10 @@ index 55c2616..aabdf56 100644
 +    }
  }
 diff --git a/src/main/java/io/github/sefiraat/emctech/commands/EmcTechMain.java b/src/main/java/io/github/sefiraat/emctech/commands/EmcTechMain.java
-index add70d9..0758047 100644
+index ecd008c..0caf0af 100644
 --- a/src/main/java/io/github/sefiraat/emctech/commands/EmcTechMain.java
 +++ b/src/main/java/io/github/sefiraat/emctech/commands/EmcTechMain.java
-@@ -22,14 +22,14 @@ public class EmcTechMain extends BaseCommand {
+@@ -23,14 +23,14 @@ public class EmcTechMain extends BaseCommand {
  
      @Default
      public void onDefault(CommandSender sender) {
@@ -119106,7 +118834,7 @@ index add70d9..0758047 100644
          } else {
              sendPlayerOnlyMessage(sender);
          }
-@@ -38,14 +38,14 @@ public class EmcTechMain extends BaseCommand {
+@@ -39,14 +39,14 @@ public class EmcTechMain extends BaseCommand {
      @Subcommand("viewemc")
      @CommandPermission("EMCTech.Admin")
      @CommandCompletion("@players")
@@ -119124,7 +118852,7 @@ index add70d9..0758047 100644
                         player)));
          }
      }
-@@ -53,7 +53,7 @@ public class EmcTechMain extends BaseCommand {
+@@ -54,7 +54,7 @@ public class EmcTechMain extends BaseCommand {
      @Subcommand("addemc")
      @CommandPermission("EMCTech.Admin")
      @CommandCompletion("@players <amount>")
@@ -119133,7 +118861,7 @@ index add70d9..0758047 100644
      public void addEmc(CommandSender sender, OnlinePlayer player, double amount) {
          EmcStorage.addEmc(player.getPlayer(), amount);
      }
-@@ -61,13 +61,13 @@ public class EmcTechMain extends BaseCommand {
+@@ -62,13 +62,13 @@ public class EmcTechMain extends BaseCommand {
      @Subcommand("setemc")
      @CommandPermission("EMCTech.Admin")
      @CommandCompletion("@players <amount>")
@@ -119143,17 +118871,118 @@ index add70d9..0758047 100644
          EmcStorage.setEmc(player.getPlayer(), amount);
      }
  
+     @Subcommand("research")
+-    @Description("Xem cac vat pham chua hoc EMC")
++    @Description("Xem các vật phẩm chưa học EMC")
+     public void research(CommandSender sender) {
+         if (sender instanceof Player player) {
+             ResearchGui.open(player);
+@@ -78,7 +78,7 @@ public class EmcTechMain extends BaseCommand {
+     }
+ 
      public void sendPlayerOnlyMessage(CommandSender sender) {
 -        sender.sendMessage(Theme.ERROR + "只有玩家才能执行该指令.");
 +        sender.sendMessage(Theme.ERROR + "Chỉ người chơi mới có thể thực thi lệnh này.");
      }
  }
  
+diff --git a/src/main/java/io/github/sefiraat/emctech/gui/ResearchGui.java b/src/main/java/io/github/sefiraat/emctech/gui/ResearchGui.java
+index 5e3f9df..91fabd7 100644
+--- a/src/main/java/io/github/sefiraat/emctech/gui/ResearchGui.java
++++ b/src/main/java/io/github/sefiraat/emctech/gui/ResearchGui.java
+@@ -45,7 +45,7 @@ public final class ResearchGui {
+     }
+ 
+     public static void open(Player player, int page) {
+-        ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC - Vat pham chua hoc");
++        ChestMenu chestMenu = new ChestMenu(Theme.MAIN.getColor() + "EMC - Vật phẩm chưa học");
+         for (int slot : HEADER) {
+             chestMenu.addItem(slot, ChestMenuUtils.getBackground(), ChestMenuUtils.getEmptyClickHandler());
+         }
+@@ -76,7 +76,7 @@ public final class ResearchGui {
+         List<ResearchEntry> subList = numberOfEntries == 0 ? new ArrayList<>() : entries.subList(start, end);
+         player.playSound(player.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 1.0F, 1.0F);
+         reapplyFooter(player, menu, page, totalPages);
+-        menu.replaceExistingItem(GUIDE_BACK, ChestMenuUtils.getBackButton(player, "", "&7Quay lai"));
++        menu.replaceExistingItem(GUIDE_BACK, ChestMenuUtils.getBackButton(player, "", "&7Quay lại"));
+         menu.addMenuClickHandler(GUIDE_BACK, (p, slot, item, action) -> {
+             p.closeInventory();
+             return false;
+@@ -91,8 +91,8 @@ public final class ResearchGui {
+             }
+             ItemStack done = new CustomItemStack(
+                 Material.EMERALD,
+-                Theme.SUCCESS + "Da hoc tat ca!",
+-                Theme.PASSIVE + "Ban da hoc tat ca vat pham co EMC."
++                Theme.SUCCESS + "Đã học tất cả!",
++                Theme.PASSIVE + "Bạn đã học tất cả vật phẩm có EMC."
+             );
+             menu.replaceExistingItem(22, done);
+             menu.addMenuClickHandler(22, ChestMenuUtils.getEmptyClickHandler());
+@@ -144,15 +144,15 @@ public final class ResearchGui {
+         int learnedVanilla = EmcStorage.getAmountLearned(player, true);
+         int learnedSlimefun = EmcStorage.getAmountLearned(player, false);
+         int learnedAll = learnedVanilla + learnedSlimefun;
+-        lore.add(MessageFormat.format("{0}Chua hoc: {1}{2}", color, passive, unlearned));
+-        lore.add(MessageFormat.format("{0}Da hoc: {1}{2}/{3}", color, passive, learnedAll, totalAll));
++        lore.add(MessageFormat.format("{0}Chưa học: {1}{2}", color, passive, unlearned));
++        lore.add(MessageFormat.format("{0}Đã học: {1}{2}/{3}", color, passive, learnedAll, totalAll));
+         lore.add(MessageFormat.format("{0}Trang: {1}{2}/{3}", color, passive, page, totalPages));
+         lore.add("");
+-        lore.add(MessageFormat.format("{0}Dat vat pham vao Dematerializer", passive));
+-        lore.add(MessageFormat.format("{0}de hoc va nhan EMC", passive));
++        lore.add(MessageFormat.format("{0}Đặt vật phẩm vào Dematerializer", passive));
++        lore.add(MessageFormat.format("{0}để học và nhận EMC", passive));
+         return new CustomItemStack(
+             Material.TARGET,
+-            Theme.MAIN.getColor() + "Thong tin",
++            Theme.MAIN.getColor() + "Thông tin",
+             lore.toArray(new String[0])
+         );
+     }
+@@ -215,11 +215,11 @@ public final class ResearchGui {
+             double emc = EmcUtils.getEmcValue(entry.id, true);
+             double emcMult = EmcUtils.getEmcValueMultiplied(entry.id, true);
+             List<String> lore = new ArrayList<>();
+-            lore.add(MessageFormat.format("{0}Chua hoc", Theme.ERROR + "" + ChatColor.BOLD));
+-            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Phan ra)", EmcUtils.EMC_FORMAT_GUIDE.format(emc)));
+-            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Tai tao)", EmcUtils.EMC_FORMAT_GUIDE.format(emcMult)));
++            lore.add(MessageFormat.format("{0}Chưa học", Theme.ERROR + "" + ChatColor.BOLD));
++            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Giải cấu)", EmcUtils.EMC_FORMAT_GUIDE.format(emc)));
++            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Tái cấu)", EmcUtils.EMC_FORMAT_GUIDE.format(emcMult)));
+             lore.add("");
+-            lore.add(Theme.PASSIVE + "Dat vao Dematerializer de hoc");
++            lore.add(Theme.PASSIVE + "Đặt vào Dematerializer để học");
+             return new CustomItemStack(
+                 mat,
+                 Theme.ERROR + entry.displayName,
+@@ -228,16 +228,16 @@ public final class ResearchGui {
+         } else {
+             SlimefunItem sf = SlimefunItem.getById(entry.id);
+             if (sf == null) {
+-                return new CustomItemStack(Material.BARRIER, Theme.ERROR + entry.id, Theme.PASSIVE + "Khong tim thay vat pham");
++                return new CustomItemStack(Material.BARRIER, Theme.ERROR + entry.id, Theme.PASSIVE + "Không tìm thấy vật phẩm");
+             }
+             double emc = EmcUtils.getEmcValue(sf);
+             double emcMult = EmcUtils.getEmcValueMultiplied(sf);
+             List<String> lore = new ArrayList<>();
+-            lore.add(MessageFormat.format("{0}Chua hoc", Theme.ERROR + "" + ChatColor.BOLD));
+-            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Phan ra)", EmcUtils.EMC_FORMAT_GUIDE.format(emc)));
+-            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Tai tao)", EmcUtils.EMC_FORMAT_GUIDE.format(emcMult)));
++            lore.add(MessageFormat.format("{0}Chưa học", Theme.ERROR + "" + ChatColor.BOLD));
++            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Giải cấu)", EmcUtils.EMC_FORMAT_GUIDE.format(emc)));
++            lore.add(Theme.CLICK_INFO.applyAsTitle("EMC (Tái cấu)", EmcUtils.EMC_FORMAT_GUIDE.format(emcMult)));
+             lore.add("");
+-            lore.add(Theme.PASSIVE + "Dat vao Dematerializer de hoc");
++            lore.add(Theme.PASSIVE + "Đặt vào Dematerializer để học");
+             ItemStack base = sf.getItem().clone();
+             base.setAmount(1);
+             return new CustomItemStack(
 diff --git a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
-index 4abe9cb..211616d 100644
+index 1b0c626..f53f2c8 100644
 --- a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
 +++ b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
-@@ -81,7 +81,7 @@ public class ConfigManager {
+@@ -130,7 +130,7 @@ public class ConfigManager {
      }
  
      public void saveAll() {
@@ -119162,7 +118991,7 @@ index 4abe9cb..211616d 100644
          this.playerEmc.write();
          this.playerLearnedItems.write();
      }
-@@ -100,7 +100,7 @@ public class ConfigManager {
+@@ -149,7 +149,7 @@ public class ConfigManager {
                                                      .getConfig()
                                                      .getConfigurationSection("emc-values.vanilla");
          if (section == null) {
@@ -119171,15 +119000,24 @@ index 4abe9cb..211616d 100644
              return Collections.emptyMap();
          }
          return getEmcValues(section);
-@@ -111,7 +111,7 @@ public class ConfigManager {
-                                                     .getConfig()
-                                                     .getConfigurationSection("emc-values.slimefun");
-         if (section == null) {
+@@ -160,7 +160,7 @@ public class ConfigManager {
+                                                             .getConfig()
+                                                             .getConfigurationSection("emc-values");
+         if (emcValuesSection == null) {
 -            EmcTech.getInstance().getLogger().severe("缺少粘液科技物品的EMC值配置.");
 +            EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Slimefun.");
              return Collections.emptyMap();
          }
-         return getEmcValues(section);
+         Map<String, Double> values = new HashMap<>();
+@@ -174,7 +174,7 @@ public class ConfigManager {
+             }
+         }
+         if (values.isEmpty()) {
+-            EmcTech.getInstance().getLogger().severe("缺少粘液科技物品的EMC值配置.");
++            EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Slimefun.");
+             return Collections.emptyMap();
+         }
+         return values;
 diff --git a/src/main/java/io/github/sefiraat/emctech/managers/RunnableManager.java b/src/main/java/io/github/sefiraat/emctech/managers/RunnableManager.java
 index bc66dec..4a8224a 100644
 --- a/src/main/java/io/github/sefiraat/emctech/managers/RunnableManager.java
@@ -119863,23 +119701,27 @@ index 319d6a2..79cfb4e 100644
  
          // endregion
 diff --git a/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java b/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
-index 06acb29..ea5de0a 100644
+index 8ba9534..2e156b1 100644
 --- a/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
 +++ b/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
-@@ -49,11 +49,11 @@ public final class EmcUtils {
- 
-         if (SupportedPluginManager.isDankTech2()) {
-             EmcUtils.addValidRecipeType(SlimefunItem.getById("DK2_PACK_1").getRecipeType());
+@@ -54,7 +54,7 @@ public final class EmcUtils {
+                     EmcUtils.addValidRecipeType(item.getRecipeType());
+                 }
+             } catch (Exception ignored) {}
 -            plugin.getLogger().info("正在添加来自 DankTech2 的配方");
 +            plugin.getLogger().info("Đang thêm công thức từ DankTech2");
          }
          if (SupportedPluginManager.isInfinityExpansion()) {
-             EmcUtils.addValidRecipeType(SlimefunItem.getById("INFINITY_DUST_EXTRACTOR").getRecipeType());
+             try {
+@@ -63,7 +63,7 @@ public final class EmcUtils {
+                     EmcUtils.addValidRecipeType(item.getRecipeType());
+                 }
+             } catch (Exception ignored) {}
 -            plugin.getLogger().info("正在添加来自 InfinityExpansion 的配方");
 +            plugin.getLogger().info("Đang thêm công thức từ InfinityExpansion");
          }
-     }
- 
+         try {
+             if (EmcTech.getPluginManager().isPluginEnabled("Supreme")) {
 diff --git a/src/main/java/io/github/sefiraat/emctech/utils/GuiElements.java b/src/main/java/io/github/sefiraat/emctech/utils/GuiElements.java
 index d65cc9e..e3e810a 100644
 --- a/src/main/java/io/github/sefiraat/emctech/utils/GuiElements.java
@@ -120065,3 +119907,4 @@ index 445356a..1c334e0 100644
  softdepend:
 -- 
 2.47.3
+

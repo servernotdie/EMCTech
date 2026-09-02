@@ -1,24 +1,14 @@
-From 8c1db97388f367782c554b4630a3f35c44270b33 Mon Sep 17 00:00:00 2001
+From 16241e19816194b68dc3f6935ed65e8c65037fa8 Mon Sep 17 00:00:00 2001
 From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
-Date: Sat, 29 Aug 2026 09:49:13 +0700
-Subject: [PATCH] fix: allow EMC copy from other addons (Supreme,
- InfinityExpansion, etc.)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Wed, 2 Sep 2026 15:52:07 +0700
+Subject: [PATCH 2/6] temp feature 0004
 
-- ConfigManager: gộp mọi sub-key dưới emc-values (ngoại trừ vanilla) vào Slimefun EMC để config tách riêng supreme/infinityexpansion vẫn hoạt động
-- EmcCalculator: chỉ chặn RecipeType.NULL, cho phép tất cả RecipeType custom (MACHINE_CORE_FABRICATOR...) để addon khác tự tính EMC
-- EmcUtils: thêm isRecipeTypeAllowed permissive + log Supreme, giữ whitelist cũ để tương thích
-- config.yml: thêm comment hướng dẫn cấu trúc emc-values, khuyến nghị gộp vào slimefun
-
-Fix lỗi vật phẩm Supreme/InfinityExpansion không copy được ở Dematerializer/Materializer do emc-values.supreme và infinityexpansion bị bỏ qua
 ---
- .../sefiraat/emctech/emc/EmcCalculator.java   | 12 ++++++++--
- .../emctech/managers/ConfigManager.java       | 24 +++++++++++++++----
- .../sefiraat/emctech/utils/EmcUtils.java      | 24 +++++++++++++++++++
- src/main/resources/config.yml                 | 15 ++++++++++++
- 4 files changed, 68 insertions(+), 7 deletions(-)
+ .../sefiraat/emctech/emc/EmcCalculator.java   | 12 ++++++--
+ .../emctech/managers/ConfigManager.java       | 30 ++++++++++++++-----
+ .../sefiraat/emctech/utils/EmcUtils.java      | 24 +++++++++++++++
+ src/main/resources/config.yml                 | 15 ++++++++++
+ 4 files changed, 71 insertions(+), 10 deletions(-)
 
 diff --git a/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java b/src/main/java/io/github/sefiraat/emctech/emc/EmcCalculator.java
 index 4e41260..b81c50b 100644
@@ -53,10 +43,27 @@ index 4e41260..b81c50b 100644
          double value = 0;
  
 diff --git a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
-index 211616d..097b0d4 100644
+index 4abe9cb..097b0d4 100644
 --- a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
 +++ b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
-@@ -107,14 +107,28 @@ public class ConfigManager {
+@@ -81,7 +81,7 @@ public class ConfigManager {
+     }
+ 
+     public void saveAll() {
+-        EmcTech.getInstance().getLogger().info("正在保存EMC科技的所有数据.");
++        EmcTech.getInstance().getLogger().info("Đang lưu tất cả dữ liệu của EMC.");
+         this.playerEmc.write();
+         this.playerLearnedItems.write();
+     }
+@@ -100,21 +100,35 @@ public class ConfigManager {
+                                                     .getConfig()
+                                                     .getConfigurationSection("emc-values.vanilla");
+         if (section == null) {
+-            EmcTech.getInstance().getLogger().severe("缺少原版物品的EMC值配置.");
++            EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Vanilla.");
+             return Collections.emptyMap();
+         }
+         return getEmcValues(section);
      }
  
      public Map<String, Double> getEmcValuesSlimefun() {
@@ -64,11 +71,12 @@ index 211616d..097b0d4 100644
 -                                                    .getConfig()
 -                                                    .getConfigurationSection("emc-values.slimefun");
 -        if (section == null) {
+-            EmcTech.getInstance().getLogger().severe("缺少粘液科技物品的EMC值配置.");
 +        final ConfigurationSection emcValuesSection = EmcTech.getInstance()
 +                                                            .getConfig()
 +                                                            .getConfigurationSection("emc-values");
 +        if (emcValuesSection == null) {
-             EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Slimefun.");
++            EmcTech.getInstance().getLogger().severe("Thiếu cấu hình EMC cho vật phẩm Slimefun.");
              return Collections.emptyMap();
          }
 -        return getEmcValues(section);
@@ -91,12 +99,12 @@ index 211616d..097b0d4 100644
  
      public Map<String, Double> getEmcValues(@Nonnull ConfigurationSection section) {
 diff --git a/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java b/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
-index ea5de0a..3e0ebde 100644
+index 06acb29..f2ea7f3 100644
 --- a/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
 +++ b/src/main/java/io/github/sefiraat/emctech/utils/EmcUtils.java
 @@ -55,6 +55,30 @@ public final class EmcUtils {
              EmcUtils.addValidRecipeType(SlimefunItem.getById("INFINITY_DUST_EXTRACTOR").getRecipeType());
-             plugin.getLogger().info("Đang thêm công thức từ InfinityExpansion");
+             plugin.getLogger().info("正在添加来自 InfinityExpansion 的配方");
          }
 +        // FIX 2026-08-29: Hỗ trợ mọi addon (Supreme, FluffyMachines, LiteXpansion, Bump, v.v.)
 +        // Trước đây chỉ whitelist một số RecipeType khiến addon khác không auto tính EMC được.

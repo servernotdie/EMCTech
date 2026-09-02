@@ -1,12 +1,8 @@
-From 9d96f5b596f5dc91aa2a9ef2c5e1d77166b73514 Mon Sep 17 00:00:00 2001
+From 88ffd4881ceeb0697082fa90eddc7f51288f197d Mon Sep 17 00:00:00 2001
 From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
-Date: Tue, 1 Sep 2026 23:39:05 +0700
-Subject: [PATCH] feat: skip multiblock and add addon exclude list config
+Date: Wed, 2 Sep 2026 15:52:24 +0700
+Subject: [PATCH 6/6] temp feature 0008
 
-- EmcUtils.isRecipeTypeAllowed: bo qua RecipeType.MULTIBLOCK (ca key multiblock) de khong tinh EMC cho multiblock
-- ConfigManager: ho tro blacklisted-addons dang list (SlimeTinker: [] se loai toan bo addon), them excluded-addons section ho tro dang addon: [] hoac addon: [ITEM1, ITEM2], them isItemExcluded de check per-item
-- EmcCalculator.getItemValueSlimefun: bo qua item neu isItemExcluded, tranh load toan bo addon khi config la []
-- config.yml: them mau excluded-addons: SlimeTinker: []
 ---
  .../sefiraat/emctech/emc/EmcCalculator.java   |  5 ++
  .../emctech/managers/ConfigManager.java       | 66 ++++++++++++++++++-

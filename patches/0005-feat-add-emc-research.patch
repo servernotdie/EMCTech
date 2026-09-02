@@ -1,11 +1,8 @@
-From 468412b62e640a92797971379e49cf0f8f196836 Mon Sep 17 00:00:00 2001
+From 04b1fbca8cb5c72e8fb897062d5553b21f3a4b65 Mon Sep 17 00:00:00 2001
 From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
-Date: Sun, 30 Aug 2026 00:48:28 +0700
-Subject: [PATCH] feat: add /emc research command to show unlearned EMC items
+Date: Wed, 2 Sep 2026 15:52:12 +0700
+Subject: [PATCH 3/6] temp feature 0005
 
-- ResearchGui: paginated ChestMenu hien thi vat pham chua hoc EMC (ca vanilla va Slimefun), tham khao EmcVanillaDictionaryFlexGroup/EmcSlimefunDictionaryFlexGroup, filter qua EmcStorage.hasLearnedItem, sort theo ten hien thi, hien thi EMC phan ra/tai tao, ho tro phan trang prev/next
-- EmcTechMain: them subcommand research mo GUI, chi player su dung duoc
-- Khi hoc xong vat pham se bien mat khoi list do filter lai moi lan mo
 ---
  .../emctech/commands/EmcTechMain.java         |  11 +
  .../sefiraat/emctech/gui/ResearchGui.java     | 255 ++++++++++++++++++
