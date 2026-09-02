@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
+Date: Wed, 3 Sep 2026 00:00:00 +0700
+Subject: [PATCH 8/8] fix: RunnableManager hybrid Folia/Paper 3 phut (fallback)
+
+- Ho tro ca Folia va Paper: dung reflection thu FoliaLib, fallback Bukkit neu khong co
+- Giu interval 3600 (3 phut)
+
+---
+diff --git a/src/main/java/io/github/sefiraat/emctech/managers/RunnableManager.java b/src/main/java/io/github/sefiraat/emctech/managers/RunnableManager.java
+index 8878365..77c780e 100644
+--- a/src/main/java/io/github/sefiraat/emctech/managers/RunnableManager.java
++++ b/src/main/java/io/github/sefiraat/emctech/managers/RunnableManager.java
+@@ -5,9 +5,28 @@ import io.github.sefiraat.emctech.runnables.SaveConfigRunnable;
+ 
+ public class RunnableManager {
+ 
++    // 3 phút = 3 * 60 * 20 = 3600 tick - giảm từ 12000 (10 phút) để giảm cửa sổ mất data
++    private static final long SAVE_INTERVAL_TICKS = 3600L;
++
+     public RunnableManager() {
++        final EmcTech plugin = EmcTech.getInstance();
++
+         final SaveConfigRunnable saveConfigRunnable = new SaveConfigRunnable();
+ 
+-        EmcTech.getFoliaLib().getScheduler().runTimer(saveConfigRunnable, 1, 3600);
++        // Hỗ trợ cả Paper và Folia: nếu có FoliaLib thì dùng global scheduler, fallback về Bukkit
++        try {
++            // Thử load FoliaLib nếu có (sau khi patch 0009)
++            Class.forName("com.tcoded.folialib.FoliaLib");
++            // Nếu tới đây không exception thì FoliaLib tồn tại -> dùng nó
++            // Dùng reflection để không hard dependency khi chưa shade
++            Object foliaLib = EmcTech.class.getMethod("getFoliaLib").invoke(null);
++            Object scheduler = foliaLib.getClass().getMethod("getScheduler").invoke(foliaLib);
++            scheduler.getClass().getMethod("runTimer", Runnable.class, long.class, long.class)
++                     .invoke(scheduler, saveConfigRunnable, 1L, SAVE_INTERVAL_TICKS);
++        } catch (Throwable ignored) {
++            // Fallback Paper/Spigot
++            plugin.getServer().getScheduler().runTaskTimer(plugin, saveConfigRunnable, 1L, SAVE_INTERVAL_TICKS);
++        }
++
+     }
+ }

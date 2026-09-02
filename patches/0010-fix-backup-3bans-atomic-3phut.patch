@@ -1,0 +1,252 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
+Date: Wed, 3 Sep 2026 00:00:00 +0700
+Subject: [PATCH 7/7] fix: backup 3 bans xoay vong + atomic save
+
+- Them backup xoay vong toi da 3 ban (.bak.1/.bak.2/.bak.3) truoc moi lan ghi
+- Ghi file nguyen tu qua .tmp + ATOMIC_MOVE tranh file bi cat nua khi crash
+- Tu dong khoi phuc tu backup gan nhat khi file chinh bi hong/rong, loop clean ban cuoi
+- Dong bo hoa saveAll() + atomicWrite() + isCorrupted() parse JSON
+
+---
+diff --git a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
+index f53f2c8..b0225e8 100644
+--- a/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
++++ b/src/main/java/io/github/sefiraat/emctech/managers/ConfigManager.java
+@@ -5,6 +5,10 @@ import java.io.File;
+ import java.io.IOException;
+ import java.io.InputStream;
+ import java.io.InputStreamReader;
++import java.nio.charset.StandardCharsets;
++import java.nio.file.AtomicMoveNotSupportedException;
++import java.nio.file.Files;
++import java.nio.file.StandardCopyOption;
+ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.HashMap;
+@@ -21,9 +25,14 @@ import org.bukkit.configuration.file.YamlConfiguration;
+ import io.github.sefiraat.emctech.EmcTech;
+ 
+ import de.leonhard.storage.Json;
++import de.leonhard.storage.shaded.json.JSONObject;
++import de.leonhard.storage.shaded.json.JSONTokener;
++import de.leonhard.storage.util.FileUtils;
+ 
+ public class ConfigManager {
+ 
++    private static final int MAX_BACKUPS = 3;
++
+     private static ConfigManager instance;
+ 
+     private final Json playerEmc;
+@@ -38,6 +47,11 @@ public class ConfigManager {
+         this.playerEmc = new Json("player_emc.yml", "plugins/EMCTech");
+         this.playerLearnedItems = new Json("learned_items.yml", "plugins/EMCTech");
+ 
++        // Tự động khôi phục nếu file bị hỏng ngay khi khởi tạo (3 bản backup xoay vòng)
++        restoreFromBackupIfNeeded(this.playerEmc);
++        restoreFromBackupIfNeeded(this.playerLearnedItems);
++
++        // Parse blacklisted-addons + excluded-addons (giữ logic từ patch 0008)
+         final ConfigurationSection section = EmcTech.getInstance()
+                                                     .getConfig()
+                                                     .getConfigurationSection("blacklisted-addons");
+@@ -122,17 +136,186 @@ public class ConfigManager {
+ 
+     private void updateConfig(@Nonnull FileConfiguration config, File file, String fileName) throws IOException {
+         final InputStream inputStream = EmcTech.getInstance().getResource(fileName);
+-        final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
++        if (inputStream == null) return;
++        final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+         final YamlConfiguration defaults = YamlConfiguration.loadConfiguration(reader);
+         config.addDefaults(defaults);
+         config.options().copyDefaults(true);
+         config.save(file);
+     }
+ 
+-    public void saveAll() {
++    public synchronized void saveAll() {
+         EmcTech.getInstance().getLogger().info("Đang lưu tất cả dữ liệu của EMC.");
+-        this.playerEmc.write();
+-        this.playerLearnedItems.write();
++        backupAndWrite(this.playerEmc);
++        backupAndWrite(this.playerLearnedItems);
++    }
++
++    // ===== Backup & Atomic Write =====
++
++    private void backupAndWrite(Json json) {
++        File file = new File(json.getFilePath());
++        // Tạo backup xoay vòng trước khi ghi
++        createRotatingBackup(file);
++        // Ghi nguyên tử (tmp + move) để tránh file bị cắt nửa khi crash
++        synchronized (json) {
++            atomicWrite(json, file);
++        }
++    }
++
++    private void atomicWrite(Json json, File file) {
++        String jsonString;
++        try {
++            // Lấy JSON từ memory thay vì để thư viện tự truncate
++            jsonString = json.getFileData().toJsonObject().toString(3);
++        } catch (Exception e) {
++            EmcTech.getInstance().getLogger().warning("Không thể serialize " + file.getName() + ", fallback về write() thường: " + e.getMessage());
++            try {
++                json.write();
++            } catch (Exception ex) {
++                ex.printStackTrace();
++            }
++            return;
++        }
++
++        File tmp = new File(file.getParentFile(), file.getName() + ".tmp");
++        try {
++            // Đảm bảo thư mục tồn tại
++            File parent = file.getParentFile();
++            if (parent != null && !parent.exists()) {
++                parent.mkdirs();
++            }
++            Files.writeString(tmp.toPath(), jsonString, StandardCharsets.UTF_8);
++
++            // Verify tmp hợp lệ trước khi move (tránh ghi backup hỏng thành chính)
++            if (isJsonCorrupted(tmp)) {
++                EmcTech.getInstance().getLogger().warning("Tmp file " + tmp.getName() + " bị hỏng sau khi ghi, hủy move.");
++                tmp.delete();
++                json.write();
++                return;
++            }
++
++            try {
++                Files.move(tmp.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
++            } catch (AtomicMoveNotSupportedException amn) {
++                // Fallback nếu filesystem không hỗ trợ ATOMIC_MOVE (ví dụ cross-device)
++                Files.move(tmp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
++            }
++        } catch (Exception e) {
++            EmcTech.getInstance().getLogger().warning("Atomic write thất bại cho " + file.getName() + ", fallback về write() thường: " + e.getMessage());
++            if (tmp.exists()) {
++                tmp.delete();
++            }
++            try {
++                json.write();
++            } catch (Exception ex) {
++                ex.printStackTrace();
++            }
++        } finally {
++            if (tmp.exists()) {
++                tmp.delete();
++            }
++        }
++    }
++
++    private void createRotatingBackup(File file) {
++        if (file == null || !file.exists() || file.length() <= 2) {
++            return;
++        }
++        if (isJsonCorrupted(file)) {
++            // Không backup file đã hỏng, tránh ghi đè backup tốt bằng file hỏng
++            EmcTech.getInstance().getLogger().warning("Bỏ qua backup cho " + file.getName() + " vì file hiện tại đã hỏng.");
++            return;
++        }
++        File dir = file.getParentFile();
++        if (dir == null) return;
++        String name = file.getName();
++
++        // Xóa bản cũ nhất (bak.3) để loop
++        File bak3 = new File(dir, name + ".bak.3");
++        if (bak3.exists()) {
++            bak3.delete();
++        }
++        File bak2 = new File(dir, name + ".bak.2");
++        File bak1 = new File(dir, name + ".bak.1");
++
++        try {
++            // Dịch chuyển: bak.2 -> bak.3, bak.1 -> bak.2
++            if (bak2.exists()) {
++                Files.move(bak2.toPath(), bak3.toPath(), StandardCopyOption.REPLACE_EXISTING);
++            }
++            if (bak1.exists()) {
++                Files.move(bak1.toPath(), bak2.toPath(), StandardCopyOption.REPLACE_EXISTING);
++            }
++            // Copy file hiện tại -> bak.1
++            Files.copy(file.toPath(), bak1.toPath(), StandardCopyOption.REPLACE_EXISTING);
++        } catch (IOException e) {
++            EmcTech.getInstance().getLogger().warning("Không thể tạo backup cho " + name + ": " + e.getMessage());
++        }
++    }
++
++    private void restoreFromBackupIfNeeded(Json json) {
++        File file = new File(json.getFilePath());
++        if (!isJsonCorrupted(file)) {
++            return;
++        }
++
++        EmcTech.getInstance().getLogger().warning("⚠ Phát hiện file " + file.getName() + " bị hỏng/rỗng (" + file.length() + " bytes), đang thử khôi phục từ backup...");
++
++        File dir = file.getParentFile();
++        if (dir == null) return;
++        String name = file.getName();
++
++        for (int i = 1; i <= MAX_BACKUPS; i++) {
++            File bak = new File(dir, name + ".bak." + i);
++            if (!bak.exists()) {
++                continue;
++            }
++            if (isJsonCorrupted(bak)) {
++                EmcTech.getInstance().getLogger().warning("Backup " + bak.getName() + " cũng bị hỏng, thử bản tiếp theo...");
++                continue;
++            }
++            try {
++                Files.copy(bak.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
++                // Reload lại Json từ file vừa khôi phục
++                json.forceReload();
++                EmcTech.getInstance().getLogger().info("✅ Đã khôi phục " + name + " từ " + bak.getName() + " (backup #" + i + ")");
++                return;
++            } catch (Exception e) {
++                EmcTech.getInstance().getLogger().warning("Không thể khôi phục từ " + bak.getName() + ": " + e.getMessage());
++            }
++        }
++
++        // Không có backup hợp lệ
++        EmcTech.getInstance().getLogger().severe("❌ Không có backup hợp lệ cho " + name + ", tạo file rỗng mới {} để tránh crash.");
++        try {
++            if (file.getParentFile() != null) file.getParentFile().mkdirs();
++            Files.writeString(file.toPath(), "{}", StandardCharsets.UTF_8);
++            json.forceReload();
++        } catch (Exception e) {
++            e.printStackTrace();
++        }
++    }
++
++    private boolean isJsonCorrupted(File file) {
++        if (file == null || !file.exists()) {
++            return false; // file chưa tồn tại thì Json sẽ tự tạo {}, không tính hỏng
++        }
++        if (file.length() == 0) {
++            return true;
++        }
++        try {
++            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8).trim();
++            if (content.isEmpty()) return true;
++            if (content.equals("{}") || content.equals("[]")) return false;
++            // Thử parse JSON - nếu lỗi là hỏng
++            try (InputStream is = FileUtils.createInputStream(file)) {
++                if (is == null) return true;
++                new JSONObject(new JSONTokener(is));
++            }
++            return false;
++        } catch (Exception e) {
++            return true;
++        }
+     }
+ 
+     public void saveConfig(@Nonnull FileConfiguration configuration, String filename) {
+@@ -156,6 +339,7 @@ public class ConfigManager {
+     }
+ 
+     public Map<String, Double> getEmcValuesSlimefun() {
++        // Gộp mọi sub-key dưới emc-values trừ vanilla (patch 0004) để hỗ trợ mọi addon
+         final ConfigurationSection emcValuesSection = EmcTech.getInstance()
+                                                             .getConfig()
+                                                             .getConfigurationSection("emc-values");

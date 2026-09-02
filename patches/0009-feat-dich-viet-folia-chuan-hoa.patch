@@ -119032,7 +119032,7 @@ index bc66dec..4a8224a 100644
  
 -        saveConfigRunnable.runTaskTimer(plugin, 1, 12000);
 -
-+        EmcTech.getFoliaLib().getScheduler().runTimer(saveConfigRunnable, 1, 12000);
++        EmcTech.getFoliaLib().getScheduler().runTimer(saveConfigRunnable, 1, 3600);
      }
  }
 diff --git a/src/main/java/io/github/sefiraat/emctech/runnables/SaveConfigRunnable.java b/src/main/java/io/github/sefiraat/emctech/runnables/SaveConfigRunnable.java
