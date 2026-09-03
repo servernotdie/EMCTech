@@ -1,0 +1,332 @@
+From 7732a768ad03841463adeaf4dbfd4e5f11e5899c Mon Sep 17 00:00:00 2001
+From: mytai20100 <142713298+Mytai20100@users.noreply.github.com>
+Date: Thu, 3 Sep 2026 17:35:59 +0700
+Subject: [PATCH] fix: may tai cau hoc 1 lan + khoi phuc cache sau restart
+
+- OwnedVariableTickRateItem/Node: khoi phuc cache tu BlockStorage khi null (sau restart), fix deadlock tick khong bao gio phuc hoi
+- Dematerializer: hoc ca input va template khi lech vanilla/slimefun, fallback EMC tu template
+- Materializer/NodeMaterializer: check hasLearned fallback ca 2 key, su dung getEmcValueMultiplied thong nhat, tranh yeu cau 3 item
+- NodeMaterializer: sua chi phi tu base -> multiplied de giu thue 10%
+---
+ .../slimefun/blocks/Dematerializer.java       | 37 ++++++++++++----
+ .../emctech/slimefun/blocks/Materializer.java | 31 ++++++++++----
+ .../slimefun/blocks/NodeMaterializer.java     | 29 +++++++++----
+ .../types/OwnedVariableTickRateItem.java      | 42 +++++++++++++++++--
+ .../types/OwnedVariableTickRateNode.java      | 38 +++++++++++++++--
+ 5 files changed, 147 insertions(+), 30 deletions(-)
+
+diff --git a/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/Dematerializer.java b/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/Dematerializer.java
+index 90692cf..660a0b1 100644
+--- a/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/Dematerializer.java
++++ b/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/Dematerializer.java
+@@ -126,23 +126,31 @@ public class Dematerializer extends OwnedVariableTickRateItem implements EnergyN
+ 
+         if (EmcUtils.canEmc(inputItemStack) && SlimefunUtils.isItemSimilar(inputItemStack, templateItemStack, true)) {
+             // Item can be EMC'd and matches the given template item
+-            final SlimefunItem slimefunItem = SlimefunItem.getByItem(inputItemStack);
++            final SlimefunItem inputSf = SlimefunItem.getByItem(inputItemStack);
++            final SlimefunItem templateSf = SlimefunItem.getByItem(templateItemStack);
+             String name, displayName;
+             double emcValue;
+ 
+-            if (slimefunItem == null) {
++            if (inputSf == null) {
+                 name = inputItemStack.getType().name();
+                 displayName = ItemStackHelper.getDisplayName(inputItemStack);
+                 emcValue = EmcUtils.getEmcValue(inputItemStack);
+             } else {
+-                name = slimefunItem.getId();
+-                displayName = slimefunItem.getItemName();
+-                emcValue = EmcUtils.getEmcValue(slimefunItem);
++                name = inputSf.getId();
++                displayName = inputSf.getItemName();
++                emcValue = EmcUtils.getEmcValue(inputSf);
+             }
+ 
+             if (emcValue == 0) {
+-                setInvalidItem(blockMenu);
+-                return;
++                // Thử lấy EMC từ template nếu input không có (trường hợp copy khác NBT)
++                if (templateSf != null) {
++                    double alt = EmcUtils.getEmcValue(templateSf);
++                    if (alt > 0) emcValue = alt;
++                }
++                if (emcValue == 0) {
++                    setInvalidItem(blockMenu);
++                    return;
++                }
+             }
+ 
+             final Player player = getOwner(block);
+@@ -159,7 +167,20 @@ public class Dematerializer extends OwnedVariableTickRateItem implements EnergyN
+             if (currentCharge >= requiredPower) {
+                 removeCharge(block.getLocation(), requiredPower);
+                 EmcStorage.addEmc(player, emcValue);
+-                EmcStorage.learnItem(player, name, slimefunItem == null);
++                // Học chính
++                EmcStorage.learnItem(player, name, inputSf == null);
++                // Đảm bảo học cả template nếu khác input (tránh lệch vanilla/slimefun khi isItemSimilar true nhưng getByItem khác nhau)
++                if (templateSf != null && inputSf == null) {
++                    EmcStorage.learnItem(player, templateSf.getId(), false);
++                } else if (templateSf == null && inputSf != null) {
++                    EmcStorage.learnItem(player, templateItemStack.getType().name(), true);
++                } else if (templateSf != null && inputSf != null && !templateSf.getId().equals(inputSf.getId())) {
++                    EmcStorage.learnItem(player, templateSf.getId(), false);
++                }
++                // Fallback: nếu template là vanilla nhưng có Slimefun tương ứng, cũng học slimefun để Materializer nhận
++                if (inputSf == null && templateSf == null) {
++                    // Cả hai vanilla, chỉ cần học type.name đã làm ở trên
++                }
+                 inputItemStack.setAmount(inputItemStack.getAmount() - 1);
+             }
+         }
+diff --git a/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/Materializer.java b/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/Materializer.java
+index 1f7c884..1c69780 100644
+--- a/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/Materializer.java
++++ b/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/Materializer.java
+@@ -134,9 +134,18 @@ public class Materializer extends OwnedVariableTickRateItem implements EnergyNet
+             if (isVanilla) {
+                 name = ItemStackHelper.getDisplayName(templateItemStack);
+                 emcValue = EmcUtils.getEmcValueMultiplied(templateItemStack);
++                // Fallback: nếu vanilla không có EMC nhưng template thực chất là slimefun bị mis-detect (hiếm), thử slimefun
++                if (emcValue == 0 && templateItemStack.hasItemMeta()) {
++                    // Thử tìm slimefun via display name? bỏ qua
++                }
+             } else {
+                 name = slimefunItem.getItemName();
+                 emcValue = EmcUtils.getEmcValueMultiplied(slimefunItem);
++                if (emcValue == 0) {
++                    // Fallback vanilla EMC nếu slimefun chưa tính được nhưng vanilla có
++                    double alt = EmcUtils.getEmcValueMultiplied(templateItemStack);
++                    if (alt > 0) emcValue = alt;
++                }
+             }
+ 
+             if (emcValue == 0) {
+@@ -144,13 +153,21 @@ public class Materializer extends OwnedVariableTickRateItem implements EnergyNet
+                 return;
+             }
+ 
+-            if (!EmcStorage.hasLearnedItem(
+-                player,
+-                isVanilla ?
+-                templateItemStack.getType().name() :
+-                slimefunItem.getId(),
+-                isVanilla
+-            )) {
++            boolean learned;
++            if (isVanilla) {
++                learned = EmcStorage.hasLearnedItem(player, templateItemStack.getType().name(), true);
++                // Fallback: nếu vanilla chưa học nhưng slimefun tương ứng đã học (trường hợp học lệch trước đó)
++                if (!learned && slimefunItem != null) {
++                    learned = EmcStorage.hasLearnedItem(player, slimefunItem.getId(), false);
++                }
++            } else {
++                learned = EmcStorage.hasLearnedItem(player, slimefunItem.getId(), false);
++                if (!learned) {
++                    // Fallback vanilla: trường hợp Dematerializer học nhầm vanilla trước fix
++                    learned = EmcStorage.hasLearnedItem(player, templateItemStack.getType().name(), true);
++                }
++            }
++            if (!learned) {
+                 setUnlearnedItem(blockMenu);
+                 return;
+             }
+diff --git a/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/NodeMaterializer.java b/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/NodeMaterializer.java
+index cc4d9ef..40ae25f 100644
+--- a/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/NodeMaterializer.java
++++ b/src/main/java/io/github/sefiraat/emctech/slimefun/blocks/NodeMaterializer.java
+@@ -134,10 +134,14 @@ public class NodeMaterializer extends OwnedVariableTickRateNode implements Energ
+ 
+             if (slimefunItem == null) {
+                 name = ItemStackHelper.getDisplayName(templateItemStack);
+-                emcValue = EmcUtils.getEmcValue(templateItemStack);
++                emcValue = EmcUtils.getEmcValueMultiplied(templateItemStack);
+             } else {
+                 name = slimefunItem.getItemName();
+-                emcValue = EmcUtils.getEmcValue(slimefunItem);
++                emcValue = EmcUtils.getEmcValueMultiplied(slimefunItem);
++                if (emcValue == 0) {
++                    double alt = EmcUtils.getEmcValueMultiplied(templateItemStack);
++                    if (alt > 0) emcValue = alt;
++                }
+             }
+ 
+             if (emcValue == 0) {
+@@ -145,13 +149,20 @@ public class NodeMaterializer extends OwnedVariableTickRateNode implements Energ
+                 return;
+             }
+ 
+-            if (!EmcStorage.hasLearnedItem(
+-                player,
+-                slimefunItem == null ?
+-                templateItemStack.getType().name() :
+-                slimefunItem.getId(),
+-                slimefunItem == null
+-            )) {
++            boolean isVanilla = slimefunItem == null;
++            boolean learned;
++            if (isVanilla) {
++                learned = EmcStorage.hasLearnedItem(player, templateItemStack.getType().name(), true);
++                if (!learned && slimefunItem != null) {
++                    learned = EmcStorage.hasLearnedItem(player, slimefunItem.getId(), false);
++                }
++            } else {
++                learned = EmcStorage.hasLearnedItem(player, slimefunItem.getId(), false);
++                if (!learned) {
++                    learned = EmcStorage.hasLearnedItem(player, templateItemStack.getType().name(), true);
++                }
++            }
++            if (!learned) {
+                 setUnlearnedItem(blockMenu);
+                 return;
+             }
+diff --git a/src/main/java/io/github/sefiraat/emctech/slimefun/types/OwnedVariableTickRateItem.java b/src/main/java/io/github/sefiraat/emctech/slimefun/types/OwnedVariableTickRateItem.java
+index 006077c..0b5dd7f 100644
+--- a/src/main/java/io/github/sefiraat/emctech/slimefun/types/OwnedVariableTickRateItem.java
++++ b/src/main/java/io/github/sefiraat/emctech/slimefun/types/OwnedVariableTickRateItem.java
+@@ -82,6 +82,8 @@ public abstract class OwnedVariableTickRateItem extends SlimefunItem {
+                     }
+                     blockMenu.dropItems(blockMenu.getLocation(), getSlotsToDropOnBreak());
+                     whenBroken(e, item, drops);
++                    // Clean cache để tránh leak
++                    ownedBlockCacheMap.remove(e.getBlock().getLocation());
+                 }
+             },
+             new BlockTicker() {
+@@ -92,9 +94,12 @@ public abstract class OwnedVariableTickRateItem extends SlimefunItem {
+ 
+                 @Override
+                 public void tick(@Nonnull Block block, @Nonnull SlimefunItem item, @Nonnull Config data) {
+-                    final OwnedBlockCache cache = ownedBlockCacheMap.get(block.getLocation());
++                    OwnedBlockCache cache = getCache(block);
+                     if (cache == null) {
+-                        return;
++                        cache = tryRestoreCache(block);
++                        if (cache == null) {
++                            return;
++                        }
+                     }
+ 
+                     final BlockMenu blockMenu = BlockStorage.getInventory(block);
+@@ -112,6 +117,24 @@ public abstract class OwnedVariableTickRateItem extends SlimefunItem {
+         );
+     }
+ 
++    @Nullable
++    private OwnedBlockCache tryRestoreCache(@Nonnull Block block) {
++        final Location loc = block.getLocation();
++        // Thử load từ BlockStorage nếu cache chưa có (sau restart)
++        try {
++            String ownerStr = BlockStorage.getLocationInfo(loc, "owner");
++            if (ownerStr != null && !ownerStr.isEmpty()) {
++                UUID uuid = UUID.fromString(ownerStr);
++                OwnedBlockCache cache = new OwnedBlockCache(uuid, ticksRequired);
++                ownedBlockCacheMap.put(loc, cache);
++                return cache;
++            }
++        } catch (Exception ignored) {
++        }
++        // Fallback: thử qua OwnedBlockMenuPreset logic (khi menu được tạo)
++        return null;
++    }
++
+     public abstract int[] getInputSlots();
+ 
+     public abstract int[] getOutputSlots();
+@@ -189,7 +212,20 @@ public abstract class OwnedVariableTickRateItem extends SlimefunItem {
+ 
+     @Nullable
+     public OwnedBlockCache getCache(@Nonnull Location location) {
+-        return ownedBlockCacheMap.get(location);
++        OwnedBlockCache cache = ownedBlockCacheMap.get(location);
++        if (cache != null) return cache;
++        // Lazy restore từ BlockStorage
++        try {
++            String ownerStr = BlockStorage.getLocationInfo(location, "owner");
++            if (ownerStr != null && !ownerStr.isEmpty()) {
++                UUID uuid = UUID.fromString(ownerStr);
++                cache = new OwnedBlockCache(uuid, ticksRequired);
++                ownedBlockCacheMap.put(location, cache);
++                return cache;
++            }
++        } catch (Exception ignored) {
++        }
++        return null;
+     }
+ 
+     @Nullable
+diff --git a/src/main/java/io/github/sefiraat/emctech/slimefun/types/OwnedVariableTickRateNode.java b/src/main/java/io/github/sefiraat/emctech/slimefun/types/OwnedVariableTickRateNode.java
+index 65d7a02..36912ac 100644
+--- a/src/main/java/io/github/sefiraat/emctech/slimefun/types/OwnedVariableTickRateNode.java
++++ b/src/main/java/io/github/sefiraat/emctech/slimefun/types/OwnedVariableTickRateNode.java
+@@ -86,6 +86,7 @@ public abstract class OwnedVariableTickRateNode extends NetworkObject {
+                     }
+                     blockMenu.dropItems(blockMenu.getLocation(), getSlotsToDropOnBreak());
+                     whenBroken(e, item, drops);
++                    ownedBlockCacheMap.remove(e.getBlock().getLocation());
+                 }
+             },
+             new BlockTicker() {
+@@ -96,9 +97,12 @@ public abstract class OwnedVariableTickRateNode extends NetworkObject {
+ 
+                 @Override
+                 public void tick(@Nonnull Block block, @Nonnull SlimefunItem item, @Nonnull Config data) {
+-                    final OwnedBlockCache cache = ownedBlockCacheMap.get(block.getLocation());
++                    OwnedBlockCache cache = getCache(block);
+                     if (cache == null) {
+-                        return;
++                        cache = tryRestoreCache(block);
++                        if (cache == null) {
++                            return;
++                        }
+                     }
+ 
+                     final BlockMenu blockMenu = BlockStorage.getInventory(block);
+@@ -116,6 +120,22 @@ public abstract class OwnedVariableTickRateNode extends NetworkObject {
+         );
+     }
+ 
++    @Nullable
++    private OwnedBlockCache tryRestoreCache(@Nonnull Block block) {
++        final Location loc = block.getLocation();
++        try {
++            String ownerStr = BlockStorage.getLocationInfo(loc, "owner");
++            if (ownerStr != null && !ownerStr.isEmpty()) {
++                UUID uuid = UUID.fromString(ownerStr);
++                OwnedBlockCache cache = new OwnedBlockCache(uuid, ticksRequired);
++                ownedBlockCacheMap.put(loc, cache);
++                return cache;
++            }
++        } catch (Exception ignored) {
++        }
++        return null;
++    }
++
+     public abstract int[] getInputSlots();
+ 
+     public abstract int[] getOutputSlots();
+@@ -193,7 +213,19 @@ public abstract class OwnedVariableTickRateNode extends NetworkObject {
+ 
+     @Nullable
+     public OwnedBlockCache getCache(@Nonnull Location location) {
+-        return ownedBlockCacheMap.get(location);
++        OwnedBlockCache cache = ownedBlockCacheMap.get(location);
++        if (cache != null) return cache;
++        try {
++            String ownerStr = BlockStorage.getLocationInfo(location, "owner");
++            if (ownerStr != null && !ownerStr.isEmpty()) {
++                UUID uuid = UUID.fromString(ownerStr);
++                cache = new OwnedBlockCache(uuid, ticksRequired);
++                ownedBlockCacheMap.put(location, cache);
++                return cache;
++            }
++        } catch (Exception ignored) {
++        }
++        return null;
+     }
+ 
+     @Nullable
+-- 
+2.47.3
+
